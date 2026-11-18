@@ -4,6 +4,14 @@ const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 ## Customer jobs share the physical ledger; accepting never repairs a machine.
 
 const MAX_ACTIVE := 3
+const MAX_OFFERS := 3
+const INTERMEDIATE_DELIVERIES := 2
+const ADVANCED_DELIVERIES := 5
+const BASIC_JOBS := ["ram", "upgrade", "cooling"]
+const MILESTONES := [
+	{"deliveries": INTERMEDIATE_DELIVERIES, "kinds": ["psu", "gpu"], "services": "reparos de fonte e vídeo"},
+	{"deliveries": ADVANCED_DELIVERIES, "kinds": ["diagnosis", "ram_gpu"], "services": "revisões completas e reparos combinados"},
+]
 const GPU_ARTIFACT_REPORT := "Aparecem blocos coloridos na tela e a imagem some por instantes."
 const FIRST_NAMES := ["Ana", "Bruno", "Camila", "Diego", "Elisa", "Felipe", "Gabriela", "Henrique", "Iara", "João", "Lívia", "Marcos", "Nina", "Otávio", "Paula", "Rafael", "Sofia", "Tiago", "Valéria", "Caio"]
 const SURNAMES := ["Almeida", "Barbosa", "Costa", "Dias", "Freitas", "Gomes", "Lima", "Mendes", "Oliveira", "Ribeiro", "Santos", "Teixeira"]
@@ -18,10 +26,33 @@ const JOBS := {
 	"ram_gpu": {"title": "Resolver falhas de vídeo e memória", "parts": ["ram", "gpu"], "cost": 400, "labor": 210, "reports": ["Além de não dar vídeo, a máquina já apresentava erros de memória.", "O computador perdeu a imagem; antes disso, também travava com erros de RAM.", "Preciso corrigir dois problemas: falhas de vídeo e de memória."]}
 }
 
-static func ensure(ledger: RefCounted) -> void:
+static func ensure(ledger: RefCounted, guide_first_order: bool = false) -> void:
 	if ledger.state.has("services"): return
 	ledger.state.services = {"orders": [], "bag": [], "serial": 0, "arrival": 45.0, "last_kind": ""}
-	for i in range(3): _offer(ledger)
+	for i in range(MAX_OFFERS): _offer(ledger, guide_first_order and i == 0)
+
+static func completed_count(state: Dictionary) -> int:
+	var count := 0
+	for order in state.get("services", {}).get("orders", []):
+		if order.status == "delivered": count += 1
+	return count
+
+static func next_milestone(completed: int) -> Dictionary:
+	for milestone in MILESTONES:
+		if completed < milestone.deliveries: return milestone
+	return {}
+
+static func unlocked_jobs(completed: int) -> Array:
+	var kinds := BASIC_JOBS.duplicate()
+	for milestone in MILESTONES:
+		if completed < milestone.deliveries: break
+		kinds.append_array(milestone.kinds)
+	return kinds
+
+static func guided_order(ledger: RefCounted) -> Dictionary:
+	var entries: Array = ledger.state.get("services", {}).get("orders", [])
+	if entries.is_empty() or not entries[0].get("guided", false): return {}
+	return entries[0]
 
 static func orders(ledger: RefCounted, status: String = "") -> Array:
 	ensure(ledger)
@@ -42,15 +73,21 @@ static func localized_report(order: Dictionary) -> String:
 			return Prefs.t(report.trim_suffix(" " + context)) + " " + Prefs.t(context)
 	return Prefs.t(report)
 
-static func _offer(ledger: RefCounted) -> void:
+static func _offer(ledger: RefCounted, guided: bool = false) -> void:
 	var service: Dictionary = ledger.state.services
+	var unlocked := unlocked_jobs(completed_count(ledger.state))
+	# Older saves may still have locked categories in their unassigned draw bag.
+	service.bag = service.bag.filter(func(kind: String) -> bool: return kind in unlocked)
 	if service.bag.is_empty():
-		service.bag = JOBS.keys()
+		service.bag = unlocked
 		service.bag.shuffle()
 		if service.bag.back() == service.last_kind:
 			var first: Variant = service.bag[0]
 			service.bag[0] = service.bag[-1]
 			service.bag[-1] = first
+	if guided:
+		service.bag.erase("ram")
+		service.bag.append("ram")
 	var kind: String = service.bag.pop_back()
 	service.last_kind = kind
 	service.serial += 1
@@ -63,16 +100,31 @@ static func _offer(ledger: RefCounted) -> void:
 		if not duplicate: break
 	var job: Dictionary = JOBS[kind]
 	var labor: int = job.labor + randi_range(0, 4)*10
-	service.orders.append({"id": "OS-%04d" % service.serial, "client": client, "kind": kind, "title": job.title, "report": job.reports.pick_random()+" "+CONTEXTS.pick_random(), "status": "offered", "pc_id": "", "deposit": job.cost, "reward": job.cost+labor, "priority": service.serial, "originals": {}})
+	var order := {"id": "OS-%04d" % service.serial, "client": client, "kind": kind, "title": job.title, "report": job.reports.pick_random()+" "+CONTEXTS.pick_random(), "status": "offered", "pc_id": "", "deposit": job.cost, "reward": job.cost+labor, "priority": service.serial, "originals": {}}
+	if guided: order.guided = true
+	service.orders.append(order)
 
 static func tick(ledger: RefCounted, delta: float) -> void:
 	ensure(ledger)
-	if orders(ledger, "offered").size() >= 3: return
+	if orders(ledger, "offered").size() >= MAX_OFFERS: return
 	ledger.state.services.arrival = maxf(0, float(ledger.state.services.arrival)-delta)
 	if ledger.state.services.arrival == 0:
 		_offer(ledger)
 		ledger.state.services.arrival = 45.0
 		ledger.done("Novo cliente: uma proposta chegou ao balcão de atendimento.")
+
+static func _unlock_services(ledger: RefCounted, milestone: Dictionary) -> void:
+	var offers := orders(ledger, "offered")
+	var service: Dictionary = ledger.state.services
+	var queued := 0
+	for kind in milestone.kinds:
+		if offers.any(func(order: Dictionary) -> bool: return order.kind == kind): continue
+		service.bag.erase(kind)
+		service.bag.append(kind)
+		queued += 1
+	var new_offers := mini(queued, MAX_OFFERS - offers.size())
+	for i in range(new_offers): _offer(ledger)
+	if queued > new_offers: service.arrival = 0.0
 
 static func accept(ledger: RefCounted, id: String) -> bool:
 	var order := get_order(ledger, id)
@@ -143,6 +195,13 @@ static func signature(ledger: RefCounted, pc: Dictionary) -> String:
 		if key != "ram2": ledger.mounts(pc.id, key)
 	return JSON.stringify([parts, pc.get("mounts", {}), pc.latches, pc.get("ram2_latches", [true, true])])
 
+static func post_verified(ledger: RefCounted, pc: Dictionary) -> bool:
+	var result: String = pc.get("service_post", "")
+	return not result.is_empty() and result == signature(ledger, pc) and ledger.evaluate_boot(pc.id).begins_with("POST concluído. Sistema")
+
+static func valid_replacement(order: Dictionary, kind: String, part: Dictionary) -> bool:
+	return not part.is_empty() and int(part.health) >= 70 and part.defects.is_empty() and part.id != order.originals.get(kind, "")
+
 static func requirements(ledger: RefCounted, order: Dictionary) -> Array:
 	var result: Array = []
 	var pc: Dictionary = ledger.item(order.get("pc_id", ""))
@@ -151,7 +210,7 @@ static func requirements(ledger: RefCounted, order: Dictionary) -> Array:
 	for key in job.parts:
 		var part: Dictionary = ledger.item(pc.components.get(key, ""))
 		var label: String = Prefs.t("Segundo módulo de 8 GB DDR4") if key == "ram2" else Prefs.t("Substituir %s") % Prefs.t(ledger.PART_NAMES[key]).to_lower()
-		var good: bool = not part.is_empty() and int(part.health) >= 70 and part.defects.is_empty() and part.id != order.originals.get(key, "")
+		var good := valid_replacement(order, key, part)
 		if key == "ram2": good = good and part.get("ddr") == "DDR4" and part.get("capacity_gb", 8) == 8
 		result.append({"text": label, "ok": good})
 		result.append({"text": Prefs.t("Testar %s") % Prefs.t("a memória instalada" if key in ["ram", "ram2"] else ledger.PART_NAMES[key]).to_lower(), "ok": part.get("tested", false) and good})
@@ -160,7 +219,7 @@ static func requirements(ledger: RefCounted, order: Dictionary) -> Array:
 			result.append({"text": Prefs.t("Verificar %s") % Prefs.t(ledger.PART_NAMES[key]).to_lower(), "ok": ledger.item(pc.components.get(key, "")).get("tested", false)})
 	if order.kind == "upgrade":
 		result.append({"text": "Manter o módulo original no primeiro slot", "ok": pc.components.get("ram") == order.originals.get("ram")})
-	result.append({"text": "Inicialização aprovada após o serviço", "ok": pc.get("service_post", "") == signature(ledger, pc) and ledger.evaluate_boot(pc.id).begins_with("POST concluído. Sistema")})
+	result.append({"text": "Inicialização aprovada após o serviço", "ok": post_verified(ledger, pc)})
 	result.append({"text": "Desligar e fechar o gabinete com os quatro parafusos", "ok": not pc.power and pc.lid and not false in pc.screws})
 	result.append({"text": "Trazer o gabinete correto nas mãos ao balcão", "ok": ledger.carried() == pc.id})
 	return result
@@ -170,11 +229,17 @@ static func deliver(ledger: RefCounted, id: String) -> bool:
 	if order.get("status") != "active": return ledger.fail("Este pedido não está em andamento.")
 	for requirement in requirements(ledger, order):
 		if not requirement.ok: return ledger.fail(Prefs.t("Entrega pendente: %s.") % Prefs.t(requirement.text))
+	var completed := completed_count(ledger.state)
+	var milestone := next_milestone(completed)
 	var pc: Dictionary = ledger.item(order.pc_id)
 	pc.location = "returned"
 	order.status = "delivered"
 	ledger.state.credits += int(order.reward) - int(order.deposit)
-	return ledger.done(Prefs.t("%s entregue a %s! Recebidos %s restantes.") % [order.id, order.client, Prefs.money(order.reward-order.deposit)], "purchase")
+	var message := Prefs.t("%s entregue a %s! Recebidos %s restantes.") % [order.id, order.client, Prefs.money(order.reward-order.deposit)]
+	if milestone.get("deliveries") == completed + 1:
+		_unlock_services(ledger, milestone)
+		message += "\n" + Prefs.t("Você desbloqueou %s e uma expansão do armário.") % Prefs.t(milestone.services)
+	return ledger.done(message, "purchase")
 
 static func earnings(candidate: Dictionary) -> int:
 	var total := 0
@@ -207,6 +272,7 @@ static func valid(candidate: Dictionary) -> bool:
 		bag_kinds.append(kind)
 	for order in service.orders:
 		if not order is Dictionary or not order.get("id") is String or seen.has(order.id): return false
+		if order.has("guided") and (seen.size() != 0 or order.id != "OS-0001" or order.get("kind") != "ram" or not order.guided is bool or not order.guided): return false
 		seen[order.id] = true
 		if not JOBS.has(order.get("kind", "")) or order.get("status") not in ["offered", "active", "delivered", "declined"]: return false
 		for field in ["client", "title", "report", "pc_id"]:
@@ -230,4 +296,4 @@ static func valid(candidate: Dictionary) -> bool:
 		if order.status == "offered": offers += 1
 	for record in candidate.items.values():
 		if record.get("location") == "returned" and not computers.has(record.id): return false
-	return active <= MAX_ACTIVE and offers <= 3
+	return active <= MAX_ACTIVE and offers <= MAX_OFFERS

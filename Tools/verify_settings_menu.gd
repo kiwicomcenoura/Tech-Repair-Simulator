@@ -49,6 +49,12 @@ func run() -> void:
 	workshop._hud.find_child("OpenSettings", true, false).pressed.emit()
 	await frames()
 	check(menu.is_open and paused and not workshop._hud.visible, "Settings button opens modal and pauses workshop")
+	var version := menu.find_child("GameVersion", true, false) as Label
+	var configured_version: String = ProjectSettings.get_setting("application/config/version", "")
+	check(not configured_version.is_empty() and version != null and version.is_visible_in_tree() and version.text == "v" + configured_version, "Main menu displays the configured game version")
+	if "--capture" in OS.get_cmdline_user_args():
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("user://main-menu-version.png")
 	for id in ["SaveProgress", "RestoreProgress", "CustomizeWorkshop", "ExitGame"]:
 		check(menu.find_child(id, true, false).is_visible_in_tree(), "Settings includes " + id)
 	var original_path := Prefs.config_path

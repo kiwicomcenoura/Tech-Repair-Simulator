@@ -54,6 +54,13 @@ func _ready() -> void:
 	_menu.add_theme_constant_override("separation", 10)
 	content.add_child(_menu)
 	_heading(_menu, "Configurações")
+	var version := Label.new()
+	version.name = "GameVersion"
+	version.text = "v%s" % ProjectSettings.get_setting("application/config/version")
+	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	version.add_theme_font_size_override("font_size", 14)
+	version.add_theme_color_override("font_color", Color("96d4dc"))
+	_menu.add_child(version)
 	_button(_menu, "SaveProgress", "Salvar (F5)", _save)
 	_button(_menu, "RestoreProgress", "Restaurar (F9)", _restore)
 	_button(_menu, "CustomizeWorkshop", "Decorar (F2)", _decorate)

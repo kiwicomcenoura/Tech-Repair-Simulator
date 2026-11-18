@@ -7,9 +7,14 @@ signal feedback(text: String, failed: bool)
 
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const Audio := preload("res://Scripts/Gameplay/workshop_audio.gd")
+const Orders := preload("res://Scripts/Gameplay/service_orders.gd")
 const PHYSICAL_LOCATIONS := ["floor", "carried", "shelf", "tray", "bench", "counter", "delivery", "installed", "inventory", "returned"]
 const COUNTER_CAPACITY := 3
 const SHELF_CAPACITY := 9
+const SHELF_EXPANSIONS := [
+	{"id": "shelf_15", "capacity": 15, "deliveries": Orders.INTERMEDIATE_DELIVERIES, "price": 350},
+	{"id": "shelf_24", "capacity": 24, "deliveries": Orders.ADVANCED_DELIVERIES, "price": 600},
+]
 const INVENTORY_CAPACITY := 3
 const PART_NAMES := {"cpu": "Processador", "cooling": "Refrigeração", "motherboard": "Placa-mãe", "ram": "Memória RAM", "gpu": "Placa de vídeo", "storage": "Armazenamento", "psu": "Fonte"}
 const FASTENERS := {"cpu": 0, "ram": 0, "gpu": 2, "storage": 4, "psu": 4, "cooling": 4, "motherboard": 6}
@@ -122,6 +127,47 @@ func at(location: String) -> Array:
 	return result
 
 
+func _shelf_level() -> int:
+	var level := 0
+	for transaction in state.transactions:
+		if transaction.has("shelf_expansion"): level += 1
+	return level
+
+
+func shelf_capacity() -> int:
+	return _capacity_for_shelf_level(_shelf_level())
+
+
+static func _capacity_for_shelf_level(level: int) -> int:
+	return SHELF_CAPACITY if level == 0 else SHELF_EXPANSIONS[level - 1].capacity
+
+
+func next_shelf_expansion() -> Dictionary:
+	var level := _shelf_level()
+	return SHELF_EXPANSIONS[level] if level < SHELF_EXPANSIONS.size() else {}
+
+
+func shelf_expansion_block_reason(expansion: Dictionary) -> String:
+	if Orders.completed_count(state) < expansion.deliveries:
+		return Prefs.t("Desbloqueia com %d entregas.") % expansion.deliveries
+	var spendable: int = state.credits
+	for order in Orders.orders(self, "active"):
+		spendable -= int(order.deposit)
+	if spendable < expansion.price:
+		return Prefs.t("Você pode usar %s na expansão. Os adiantamentos ficam reservados para os pedidos.") % Prefs.money(maxi(0, spendable))
+	return ""
+
+
+func buy_shelf_expansion(id: String) -> bool:
+	var expansion := next_shelf_expansion()
+	if expansion.get("id") != id: return fail("Esta expansão do armário não está disponível.")
+	var reason := shelf_expansion_block_reason(expansion)
+	if not reason.is_empty(): return fail(reason)
+	state.credits -= int(expansion.price)
+	state.transactions.append({"id": uid(), "shelf_expansion": id, "amount": -int(expansion.price)})
+	return done(Prefs.t("Armário ampliado para %d espaços.") % expansion.capacity, "purchase")
+
+
 func carried() -> String:
 	var ids := at("carried")
 	return str(ids[0]) if not ids.is_empty() else ""
@@ -159,14 +205,16 @@ func move(id: String, location: String, position: Vector2 = Vector2.ZERO) -> boo
 		return fail("Você só pode carregar um item por vez.")
 	if location == "bench" and (record.kind != "pc" or (bench_id() != "" and bench_id() != id)):
 		return fail("A bancada já está ocupada ou o item não é um gabinete.")
-	if location == "shelf" and (record.kind == "pc" or at("shelf").size() >= SHELF_CAPACITY):
-		return fail("O armário aceita até %d componentes; gabinetes não cabem." % SHELF_CAPACITY)
 	if location == "tray" and (record.kind == "pc" or at("tray").size() >= 4):
 		return fail("A bandeja aceita até quatro componentes.")
 	if location == "shelf":
+		var capacity := shelf_capacity()
+		var stored := at("shelf")
+		if record.kind == "pc" or stored.size() >= capacity:
+			return fail(Prefs.t("O armário aceita até %d componentes; gabinetes não cabem.") % capacity)
 		var used: Array = []
-		for key in at("shelf"): used.append(item(key).get("shelf_slot", -1))
-		for slot in range(SHELF_CAPACITY):
+		for key in stored: used.append(item(key).get("shelf_slot", -1))
+		for slot in range(capacity):
 			if slot not in used:
 				record.shelf_slot = slot
 				break
@@ -193,12 +241,13 @@ func unpack(id: String) -> bool:
 func arrange_storage(id: String, destination: String, slot: int) -> bool:
 	var record := item(id)
 	if record.is_empty() or record.kind == "pc" or record.location not in ["inventory","shelf"]: return fail("Peça indisponível para organizar.")
-	if destination not in ["inventory","shelf"] or slot < 0 or slot >= (SHELF_CAPACITY if destination == "shelf" else INVENTORY_CAPACITY): return false
+	var capacity := shelf_capacity() if destination == "shelf" else INVENTORY_CAPACITY
+	if destination not in ["inventory","shelf"] or slot < 0 or slot >= capacity: return false
 	var field := "shelf_slot" if destination == "shelf" else "inventory_slot"
 	for other_id in at(destination):
 		if other_id != id and int(item(other_id).get(field,-1)) == slot: return fail("Este espaço está ocupado. Escolha um espaço vazio.")
 	if record.location != destination:
-		if at(destination).size() >= (SHELF_CAPACITY if destination == "shelf" else INVENTORY_CAPACITY): return fail("Destino cheio.")
+		if at(destination).size() >= capacity: return fail("Destino cheio.")
 	record.location = destination
 	record[field] = slot
 	return done("Peça organizada no espaço %02d." % (slot+1))
@@ -439,7 +488,7 @@ func tick(delta: float) -> void:
 			if record.boot_remaining == 0:
 				record.boot_result = evaluate_boot(record.id)
 				record.boot_ok = record.boot_result.begins_with("POST concluído. Sistema")
-				if record.boot_ok: record.service_post = preload("res://Scripts/Gameplay/service_orders.gd").signature(self, record)
+				if record.boot_ok: record.service_post = Orders.signature(self, record)
 				done(record.boot_result, "boot_ok" if record.boot_ok else "boot_fail")
 
 
@@ -511,7 +560,7 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 		if r.location == "shelf":
 			if r.kind == "pc" or not numeric(r.get("shelf_slot")): return false
 			var slot := int(r.shelf_slot)
-			if r.shelf_slot != slot or slot < 0 or slot >= SHELF_CAPACITY or slot in shelves: return false
+			if r.shelf_slot != slot or slot < 0 or slot in shelves: return false
 			shelves.append(slot)
 		if r.kind == "pc":
 			if r.has("ram2_latches"):
@@ -555,20 +604,28 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 				referenced[child_id] = id
 	for id in candidate.items:
 		if candidate.items[id].location == "installed" and not referenced.has(id): return false
-	var credit_total := 500
+	if not Orders.valid(candidate): return false
+	var credit_total := 500 + Orders.earnings(candidate)
+	var deliveries := Orders.completed_count(candidate)
+	var shelf_level := 0
 	var transaction_ids: Dictionary = {}
 	var purchased_ids: Dictionary = {}
 	for transaction in candidate.transactions:
 		if not transaction is Dictionary or not transaction.get("id") is String or transaction_ids.has(transaction.id): return false
-		if not transaction.get("item_id") is String or not candidate.items.has(transaction.item_id) or purchased_ids.has(transaction.item_id): return false
 		if not numeric(transaction.get("amount")) or int(transaction.amount) != transaction.amount or transaction.amount >= 0: return false
 		transaction_ids[transaction.id] = true
-		purchased_ids[transaction.item_id] = true
+		if transaction.has("shelf_expansion"):
+			if transaction.has("item_id") or shelf_level >= SHELF_EXPANSIONS.size(): return false
+			var expansion: Dictionary = SHELF_EXPANSIONS[shelf_level]
+			if not transaction.shelf_expansion is String or transaction.shelf_expansion != expansion.id or transaction.amount != -expansion.price or deliveries < expansion.deliveries: return false
+			shelf_level += 1
+		else:
+			if not transaction.get("item_id") is String or not candidate.items.has(transaction.item_id) or purchased_ids.has(transaction.item_id): return false
+			purchased_ids[transaction.item_id] = true
 		credit_total += int(transaction.amount)
-	var services := preload("res://Scripts/Gameplay/service_orders.gd")
-	if not services.valid(candidate): return false
-	credit_total += services.earnings(candidate)
-	return carries <= 1 and benches <= 1 and trays <= 4 and shelves.size() <= SHELF_CAPACITY and inventory_count <= inventory_limit and credit_total == int(candidate.credits)
+	var capacity := _capacity_for_shelf_level(shelf_level)
+	if shelves.any(func(slot: int) -> bool: return slot >= capacity): return false
+	return carries <= 1 and benches <= 1 and trays <= 4 and inventory_count <= inventory_limit and credit_total == int(candidate.credits)
 
 
 static func numeric(value: Variant) -> bool:

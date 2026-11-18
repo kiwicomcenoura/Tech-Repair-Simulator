@@ -6,6 +6,7 @@ const Orders := preload("res://Scripts/Gameplay/service_orders.gd")
 var workshop: Node
 var _filter: OptionButton
 var _summary: Label
+var _progress: Label
 var _notice: Label
 var _list: VBoxContainer
 var _scroll: ScrollContainer
@@ -16,6 +17,8 @@ func _ready() -> void:
 	_summary = Label.new()
 	_summary.add_theme_font_size_override("font_size", 18)
 	add_child(_summary)
+	_progress = _label(self, "", 14)
+	_progress.modulate = Color("96d4dc")
 	var help := Label.new()
 	help.text = "Receba e entregue no balcão (F). Consulte a fila com O. O adiantamento cobre as peças; a mão de obra é paga na entrega."
 	help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -57,7 +60,12 @@ func refresh() -> void:
 	_refresh_pending = false
 	if not is_node_ready(): return
 	Orders.ensure(workshop.ledger)
-	_summary.text = Prefs.t("%d / %d serviços ativos · %d entregas · %s") % [Orders.orders(workshop.ledger, "active").size(), Orders.MAX_ACTIVE, Orders.orders(workshop.ledger, "delivered").size(), Prefs.money(workshop.ledger.state.credits)]
+	var completed := Orders.completed_count(workshop.ledger.state)
+	_summary.text = Prefs.t("%d / %d serviços ativos · %d entregas · %s") % [Orders.orders(workshop.ledger, "active").size(), Orders.MAX_ACTIVE, completed, Prefs.money(workshop.ledger.state.credits)]
+	var milestone := Orders.next_milestone(completed)
+	_progress.text = Prefs.t("Todos os tipos de serviço foram desbloqueados.")
+	if not milestone.is_empty():
+		_progress.text = Prefs.t("Conclua %d entregas para liberar %s e uma expansão do armário.") % [milestone.deliveries, Prefs.t(milestone.services)]
 	for child in _list.get_children():
 		_list.remove_child(child)
 		child.queue_free()
@@ -112,6 +120,8 @@ func _card(order: Dictionary, number: int) -> void:
 	var prefix := "%dº na fila · " % number if order.status == "active" else ""
 	_label(body, prefix+order.id+" · "+order.client, 18).modulate = Color("96d4dc")
 	_label(body, order.title, 16)
+	if order.get("guided", false) and order.status != "delivered":
+		_label(body, "Primeira ordem guiada", 13).modulate = Color("96d4dc")
 	_label(body, "“"+Orders.localized_report(order)+"”", 14)
 	_label(body, Prefs.t("Total: %s · Adiantamento para peças: %s · Na entrega: %s") % [Prefs.money(order.reward), Prefs.money(order.deposit), Prefs.money(order.reward-order.deposit)], 13)
 	var actions := HFlowContainer.new()

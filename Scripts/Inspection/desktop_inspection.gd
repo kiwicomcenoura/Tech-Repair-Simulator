@@ -191,7 +191,7 @@ func configure(value: RefCounted) -> void:
 		return
 	session.changed.connect(_refresh)
 	session.notice.connect(_notice)
-	%ContextMessage.text = "Selecione a chave Phillips e clique nos parafusos."
+	%ContextMessage.text = "Aguardando teste ou manuseio do gabinete." if is_instance_valid(session.workshop) else "Selecione a chave Phillips e clique nos parafusos."
 	_refresh()
 
 

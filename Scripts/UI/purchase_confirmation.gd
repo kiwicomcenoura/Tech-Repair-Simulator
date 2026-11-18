@@ -2,6 +2,7 @@ extends CanvasLayer
 signal confirmed
 signal canceled
 signal finish_selected(finish: String)
+var heading_text := "CONFIRMAR COMPRA / TECHMARKET"
 var dialog_text := ""
 var _yes: Button
 var _no: Button
@@ -39,7 +40,7 @@ func _ready() -> void:
 	layout.add_theme_constant_override("separation",20)
 	panel.add_child(layout)
 	var label := Label.new()
-	label.text = "CONFIRMAR COMPRA / TECHMARKET"
+	label.text = heading_text
 	label.add_theme_font_size_override("font_size",14)
 	label.add_theme_color_override("font_color",Color("72d5e6"))
 	layout.add_child(label)

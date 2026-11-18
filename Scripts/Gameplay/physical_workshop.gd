@@ -9,6 +9,7 @@ const Data := preload("res://Scripts/Equipment/equipment_data.gd")
 const Session := preload("res://Scripts/Inspection/inspection_session.gd")
 const Actor := preload("res://Scenes/Items/PhysicalItem.tscn")
 const Proximity := preload("res://Scripts/World/interaction_range.gd")
+const TOOLBOX_ACCESS_POSITION := Vector2(-210, 50)
 
 @export var save_path: String = "user://workshop_save_v1.json"
 @export var start_with_delivery := false
@@ -51,15 +52,19 @@ func _ready() -> void:
 	settings_ui = preload("res://Scripts/UI/settings_menu.gd").new()
 	settings_ui.workshop = self
 	add_child(settings_ui)
-	orders_ui = preload("res://Scripts/UI/service_orders_ui.gd").new()
-	orders_ui.workshop = self
-	add_child(orders_ui)
 	if not save_path.is_empty() and (FileAccess.file_exists(save_path) or FileAccess.file_exists(save_path + ".bak") or FileAccess.file_exists(save_path + ".tmp")):
 		if not load_game(): last_message = "Salvamento inválido; cópias preservadas. Nenhum equipamento novo foi gerado. F9 tenta restaurar novamente."
 	else:
 		ledger.new_game(start_with_delivery)
+		Orders.ensure(ledger, not start_with_delivery)
 	Orders.ensure(ledger)
+	orders_ui = preload("res://Scripts/UI/service_orders_ui.gd").new()
+	orders_ui.workshop = self
+	add_child(orders_ui)
 	_sync_nodes()
+	var guide := preload("res://Scripts/Gameplay/first_service_guide.gd").new()
+	guide.name = "FirstServiceGuide"
+	add_child(guide)
 	preload("res://Scripts/World/workshop_appearance.gd").apply(get_parent(),ledger.state.get("decoration",{}))
 	bench_ui.inspection.return_requested.connect(bench_ui._refresh_equipment, CONNECT_DEFERRED)
 	var markers := Node2D.new()
@@ -176,7 +181,7 @@ func _near_shelf() -> bool:
 
 
 func _near_tools() -> bool:
-	return not ledger.state.tools and player.global_position.distance_to(Vector2(-210, 50)) < 42.0
+	return not ledger.state.tools and player.global_position.distance_to(TOOLBOX_ACCESS_POSITION) < 42.0
 
 
 func _near_counter() -> bool:
@@ -495,7 +500,7 @@ func load_game() -> bool:
 
 
 func _store_legacy_ram() -> void:
-	if ledger.at("shelf").size() >= ledger.SHELF_CAPACITY: return
+	if ledger.at("shelf").size() >= ledger.shelf_capacity(): return
 	for id in ledger.at("floor"):
 		var part: Dictionary = ledger.item(id)
 		if part.kind != "ram" or part.get("origin") != "receiving": continue

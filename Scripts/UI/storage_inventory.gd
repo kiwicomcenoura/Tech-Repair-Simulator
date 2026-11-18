@@ -11,6 +11,11 @@ var heading: Label
 var message: Label
 var category: OptionButton
 var _previous_pause := false
+var _expansion_row: HBoxContainer
+var _expansion_summary: Label
+var _expand_button: Button
+var _expansion_confirmation: CanvasLayer
+var _pending_expansion := ""
 
 func _ready() -> void:
 	overlay = Control.new()
@@ -51,6 +56,7 @@ func _ready() -> void:
 	close.text = "Fechar · ESC"
 	close.pressed.connect(close_storage)
 	header.add_child(close)
+	_build_expansion_controls(layout)
 	category = OptionButton.new()
 	category.add_item("Todas as categorias")
 	for kind in workshop.ledger.PART_NAMES: category.add_item(workshop.ledger.PART_NAMES[kind])
@@ -68,6 +74,52 @@ func _ready() -> void:
 		if is_open: message.text = text)
 	overlay.hide()
 
+func _build_expansion_controls(layout: VBoxContainer) -> void:
+	_expansion_row = HBoxContainer.new()
+	_expansion_row.add_theme_constant_override("separation", 16)
+	layout.add_child(_expansion_row)
+	_expansion_summary = Label.new()
+	_expansion_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_expansion_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_expansion_row.add_child(_expansion_summary)
+	_expand_button = Button.new()
+	_expand_button.name = "BuyShelfExpansion"
+	_expand_button.pressed.connect(_ask_for_expansion)
+	_expansion_row.add_child(_expand_button)
+	_expansion_confirmation = preload("res://Scenes/UI/PurchaseConfirmation.tscn").instantiate()
+	_expansion_confirmation.heading_text = "CONFIRMAR COMPRA / ARMÁRIO"
+	_expansion_confirmation.confirmed.connect(_confirm_expansion)
+	_expansion_confirmation.canceled.connect(func() -> void: _pending_expansion = "")
+	add_child(_expansion_confirmation)
+
+func _refresh_expansion() -> void:
+	_expansion_row.visible = shelf_access
+	if not shelf_access: return
+	var expansion: Dictionary = workshop.ledger.next_shelf_expansion()
+	_expand_button.visible = not expansion.is_empty()
+	if expansion.is_empty():
+		_expansion_summary.text = Prefs.t("Capacidade máxima do armário alcançada.")
+		return
+	var reason: String = workshop.ledger.shelf_expansion_block_reason(expansion)
+	_expand_button.disabled = not reason.is_empty()
+	_expand_button.text = Prefs.t("Ampliar armário · %s") % Prefs.money(expansion.price)
+	_expansion_summary.text = Prefs.t("Amplie o armário de %d para %d espaços.") % [workshop.ledger.shelf_capacity(), expansion.capacity]
+	if not reason.is_empty(): _expansion_summary.text += " " + reason
+
+func _ask_for_expansion() -> void:
+	if not is_open or not shelf_access or not workshop._near_shelf() or _expansion_confirmation.visible: return
+	var expansion: Dictionary = workshop.ledger.next_shelf_expansion()
+	if expansion.is_empty() or not workshop.ledger.shelf_expansion_block_reason(expansion).is_empty(): return
+	_pending_expansion = expansion.id
+	_expansion_confirmation.dialog_text = Prefs.t("Ampliar o armário para %d espaços por %s?") % [expansion.capacity, Prefs.money(expansion.price)]
+	_expansion_confirmation.popup_centered()
+
+func _confirm_expansion() -> void:
+	var id := _pending_expansion
+	_pending_expansion = ""
+	if not id.is_empty() and is_open and shelf_access and workshop._near_shelf():
+		workshop.ledger.buy_shelf_expansion(id)
+
 func open_storage(near_shelf: bool) -> void:
 	if is_open: return
 	if near_shelf and not workshop._near_shelf(): return
@@ -83,9 +135,12 @@ func close_storage() -> void:
 	if not is_open: return
 	is_open = false
 	overlay.hide()
+	_expansion_confirmation.hide()
+	_pending_expansion = ""
 	get_tree().paused = _previous_pause
 
 func _input(event: InputEvent) -> void:
+	if _expansion_confirmation.visible: return
 	if is_open and event is InputEventKey and event.pressed and not event.echo and event.physical_keycode in [KEY_ESCAPE,KEY_I]:
 		get_viewport().set_input_as_handled()
 		close_storage()
@@ -96,8 +151,9 @@ func refresh() -> void:
 		columns.remove_child(child)
 		child.queue_free()
 	heading.text = "Armário de peças" if shelf_access else "Inventário da oficina"
+	_refresh_expansion()
 	_build_column(Prefs.t("INVENTÁRIO · %d / %d") % [workshop.ledger.at("inventory").size(), workshop.ledger.INVENTORY_CAPACITY], ["inventory","carried"], "shelf" if shelf_access else "carried")
-	if shelf_access: _build_column(Prefs.t("ARMÁRIO · %d / %d") % [workshop.ledger.at("shelf").size(), workshop.ledger.SHELF_CAPACITY],["shelf"],"inventory")
+	if shelf_access: _build_column(Prefs.t("ARMÁRIO · %d / %d") % [workshop.ledger.at("shelf").size(), workshop.ledger.shelf_capacity()],["shelf"],"inventory")
 
 func _build_column(title: String, locations: Array, destination: String) -> void:
 	var panel := PanelContainer.new()
@@ -118,7 +174,7 @@ func _build_column(title: String, locations: Array, destination: String) -> void
 	grid.add_theme_constant_override("v_separation",10)
 	scroll.add_child(grid)
 	var location := "shelf" if locations == ["shelf"] else "inventory"
-	var capacity: int = workshop.ledger.SHELF_CAPACITY if location == "shelf" else workshop.ledger.INVENTORY_CAPACITY
+	var capacity: int = workshop.ledger.shelf_capacity() if location == "shelf" else workshop.ledger.INVENTORY_CAPACITY
 	var slots: Dictionary = {}
 	for id in workshop.ledger.at(location):
 		var record: Dictionary = workshop.ledger.item(id)

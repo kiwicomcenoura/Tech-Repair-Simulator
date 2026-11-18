@@ -111,6 +111,14 @@ tooltip_text = "Fechar bancada (ESC)"
 [node name="HeaderDivider" type="HSeparator" parent="Overlay/SafeMargins/WorkbenchWindow/Layout"]
 layout_mode = 2
 
+[node name="FirstServiceHint" type="Label" parent="Overlay/SafeMargins/WorkbenchWindow/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.59, 0.83, 0.86, 1)
+theme_override_font_sizes/font_size = 15
+autowrap_mode = 2
+
 [node name="Body" type="HBoxContainer" parent="Overlay/SafeMargins/WorkbenchWindow/Layout"]
 layout_mode = 2
 theme_override_constants/separation = 22

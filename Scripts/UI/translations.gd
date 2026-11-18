@@ -511,7 +511,62 @@ SATA energia|SATA power|alimentación SATA
 chicote de energia|power harness|mazo de alimentación
 painel frontal|front panel|panel frontal
 Mãos (1): conectores, travas, peças e encaixes. Libere as fixações antes de retirar.|Hands (1): connectors, latches, parts, and mounts. Release fasteners before removal.|Manos (1): conectores, cierres, piezas y huecos. Suelta las fijaciones antes de retirar.
-Mãos livres. Clique na tampa para manuseá-la.|Hands selected. Click the panel to handle it.|Manos seleccionadas. Pulsa el panel para manipularlo."""
+Mãos livres. Clique na tampa para manuseá-la.|Hands selected. Click the panel to handle it.|Manos seleccionadas. Pulsa el panel para manipularlo.
+Primeira ordem guiada|Guided first job|Primera orden guiada
+Use WASD para ir ao balcão marcado. Pressione F e escolha Receber serviço na ordem guiada.|Use WASD to go to the marked counter. Press F and choose Accept job on the guided order.|Usa WASD para ir al mostrador marcado. Pulsa F y elige Aceptar servicio en la orden guiada.
+Vá à caixa de ferramentas junto ao armário e pressione F para pegar a chave Phillips.|Go to the toolbox by the cabinet and press F to get the Phillips screwdriver.|Ve a la caja de herramientas junto al armario y pulsa F para coger el destornillador Phillips.
+Feche a bancada e abra a caixa de ferramentas junto ao armário com F.|Close the workbench and press F at the toolbox by the cabinet.|Cierra el banco y abre la caja de herramientas junto al armario con F.
+Aproxime-se do gabinete do cliente e pressione E para pegá-lo.|Approach the customer's PC and press E to pick it up.|Acércate al PC del cliente y pulsa E para recogerlo.
+A bancada está ocupada. Deixe este gabinete no chão com E e libere a bancada.|The workbench is occupied. Press E to set this PC down on the floor, then clear the bench.|El banco está ocupado. Pulsa E para dejar este PC en el suelo y despeja el banco.
+Leve o gabinete até a bancada marcada e pressione E para colocá-lo no tampo.|Carry the PC to the marked workbench and press E to set it down.|Lleva el PC al banco marcado y pulsa E para colocarlo encima.
+Aproxime-se da bancada e pressione F para abrir a manutenção.|Approach the workbench and press F to open the repair interface.|Acércate al banco y pulsa F para abrir el panel de reparación.
+Clique em Inspecionar para continuar o conserto do PC.|Click Inspect to continue repairing the PC.|Haz clic en Inspeccionar para continuar la reparación del PC.
+Volte à inspeção para continuar o conserto do PC.|Return to inspection to continue repairing the PC.|Vuelve a la inspección para continuar la reparación del PC.
+Clique em Ligar PC para verificar a inicialização do gabinete do cliente.|Click Power on PC to check whether the customer's PC starts.|Haz clic en Encender PC para comprobar el arranque del equipo del cliente.
+Aguarde a verificação de inicialização (POST).|Wait for the startup check (POST).|Espera a que termine la comprobación de arranque (POST).
+Clique em Testar RAM para identificar o problema de memória, mesmo com o POST falhando.|Click Test RAM to identify the memory problem even though POST failed.|Haz clic en Probar RAM para identificar el problema de memoria aunque falle el POST.
+Clique em Desligar PC antes de mexer no gabinete.|Click Power off PC before working on the case.|Haz clic en Apagar PC antes de manipular la caja.
+Feche a bancada para buscar uma RAM DDR4 de reposição.|Close the workbench to get replacement DDR4 RAM.|Cierra el banco para buscar memoria DDR4 de repuesto.
+Pressione F no computador da oficina. Ligue-o e compre RAM DDR4 em Loja de Peças.|Press F at the workshop computer. Power it on and buy DDR4 RAM from the Parts Shop.|Pulsa F en el ordenador del taller. Enciéndelo y compra memoria DDR4 en la Tienda de piezas.
+Abra Loja de Peças no TechOS e compre uma RAM DDR4. A entrega chega na área de recebimento.|Open the Parts Shop in TechOS and buy DDR4 RAM. The package arrives in the receiving area.|Abre la Tienda de piezas en TechOS y compra memoria DDR4. El paquete llega a la zona de recepción.
+Feche o TechOS com Esc e siga o marcador para buscar a RAM DDR4.|Close TechOS with Esc and follow the marker to pick up the DDR4 RAM.|Cierra TechOS con Esc y sigue el marcador para recoger la memoria DDR4.
+A RAM DDR4 foi comprada. Aguarde a caixa chegar à área de recebimento.|DDR4 RAM purchased. Wait for the package to arrive in the receiving area.|Memoria DDR4 comprada. Espera a que el paquete llegue a la zona de recepción.
+Vá até a entrega e pressione E para abrir a caixa de RAM DDR4.|Go to the delivery and press E to open the DDR4 RAM package.|Ve al paquete y pulsa E para abrir la caja de memoria DDR4.
+Pressione E ao lado da RAM DDR4 desembalada para pegá-la.|Press E beside the unpacked DDR4 RAM to pick it up.|Pulsa E junto a la memoria DDR4 desembalada para recogerla.
+Vá ao armário, pressione F e mova a RAM DDR4 do armário para o inventário.|Go to the cabinet, press F, and move the DDR4 RAM from the cabinet to your inventory.|Ve al armario, pulsa F y pasa la memoria DDR4 del armario al inventario.
+Leve a RAM até a bancada e pressione E para colocá-la na bandeja. Depois pressione F.|Carry the RAM to the workbench and press E to put it in the tray. Then press F.|Lleva la memoria al banco y pulsa E para dejarla en la bandeja. Después pulsa F.
+Selecione Phillips (2) e clique nos quatro parafusos da tampa para soltá-los.|Select the Phillips screwdriver (2) and click the four panel screws to remove them.|Selecciona Phillips (2) y haz clic en los cuatro tornillos del panel para retirarlos.
+Clique em Retirar tampa para acessar os componentes.|Click Remove panel to access the components.|Haz clic en Retirar panel para acceder a los componentes.
+Selecione Mãos (1) e abra as duas travas do slot A1, ao lado do cooler.|Select Hands (1) and open both latches on slot A1 beside the cooler.|Selecciona Manos (1) y abre los dos cierres de la ranura A1 junto al ventilador.
+Com Mãos (1), clique no módulo A1 para retirar a RAM defeituosa.|With Hands selected (1), click the A1 module to remove the faulty RAM.|Con Manos (1), haz clic en el módulo A1 para retirar la memoria defectuosa.
+Role a coluna Ferramentas até Peças e selecione a RAM DDR4. Com Mãos (1), clique no slot A1 vazio.|Scroll down the Tools panel to Parts and select the DDR4 RAM. With Hands selected (1), click the empty A1 slot.|Desplázate por la columna Herramientas hasta Piezas y selecciona la memoria DDR4. Con Manos (1), haz clic en la ranura A1 vacía.
+Aguardando teste ou manuseio do gabinete.|Waiting for a test or work on the case.|Esperando una prueba o una acción sobre la caja.
+Com Mãos (1), clique no slot A1 vazio para instalar a RAM selecionada.|With Hands selected (1), click the empty A1 slot to install the selected RAM.|Con Manos (1), haz clic en la ranura A1 vacía para instalar la memoria seleccionada.
+Selecione Mãos (1) e feche as duas travas do slot A1, ao lado do cooler.|Select Hands (1) and close both latches on slot A1 beside the cooler.|Selecciona Manos (1) y cierra los dos cierres de la ranura A1 junto al ventilador.
+Clique em Ligar PC e confirme que o POST agora passa com a nova RAM.|Click Power on PC and make sure POST now passes with the new RAM.|Haz clic en Encender PC y comprueba que el POST termina correctamente con la memoria nueva.
+Confira as peças e fixações indicadas no resultado do POST. Desligue o PC antes de ajustá-las.|Check the parts and fasteners listed in the POST result. Power off the PC before adjusting them.|Revisa las piezas y fijaciones indicadas en el resultado del POST. Apaga el PC antes de ajustarlas.
+Ligue o PC para testar a RAM de reposição.|Power on the PC to test the replacement RAM.|Enciende el PC para probar la memoria de repuesto.
+Clique em Testar RAM para registrar a condição do módulo novo.|Click Test RAM to record the condition of the new module.|Haz clic en Probar RAM para registrar el estado del nuevo módulo.
+Clique em Desligar PC antes de fechar o gabinete.|Click Power off PC before closing the case.|Haz clic en Apagar PC antes de cerrar la caja.
+Clique em Recolocar tampa para fechar o gabinete.|Click Refit panel to close the case.|Haz clic en Volver a colocar el panel para cerrar la caja.
+Selecione Phillips (2) e fixe os quatro parafusos da tampa.|Select the Phillips screwdriver (2) and tighten the four panel screws.|Selecciona Phillips (2) y aprieta los cuatro tornillos del panel.
+Gabinete pronto. Feche a bancada e pressione Shift+E para pegá-lo.|The PC is ready. Close the workbench and press Shift+E to pick it up.|El PC está listo. Cierra el banco y pulsa Shift+E para recogerlo.
+Pegue o gabinete fechado com Shift+E e leve-o de volta ao balcão.|Press Shift+E to pick up the closed PC and take it back to the counter.|Pulsa Shift+E para recoger el PC cerrado y llévalo al mostrador.
+Leve o gabinete ao balcão. Pressione F e escolha Entregar ao cliente.|Carry the PC to the counter. Press F and choose Return to customer.|Lleva el PC al mostrador. Pulsa F y elige Entregar al cliente.
+reparos de fonte e vídeo|power supply and graphics repairs|reparaciones de fuente y vídeo
+revisões completas e reparos combinados|full inspections and multi-fault repairs|revisiones completas y reparaciones combinadas
+Conclua %d entregas para liberar %s e uma expansão do armário.|Complete %d deliveries to unlock %s and a cabinet expansion.|Completa %d entregas para desbloquear %s y una ampliación del armario.
+Todos os tipos de serviço foram desbloqueados.|All job types are unlocked.|Se han desbloqueado todos los tipos de servicio.
+Você desbloqueou %s e uma expansão do armário.|You unlocked %s and a cabinet expansion.|Has desbloqueado %s y una ampliación del armario.
+Desbloqueia com %d entregas.|Unlocks after %d deliveries.|Se desbloquea con %d entregas.
+Você pode usar %s na expansão. Os adiantamentos ficam reservados para os pedidos.|You can spend %s on the expansion. Deposits are reserved for customer jobs.|Puedes gastar %s en la ampliación. Los anticipos se reservan para los pedidos.
+Esta expansão do armário não está disponível.|This cabinet expansion is unavailable.|Esta ampliación del armario no está disponible.
+Armário ampliado para %d espaços.|Cabinet expanded to %d slots.|Armario ampliado a %d espacios.
+Capacidade máxima do armário alcançada.|Cabinet is fully expanded.|Se ha alcanzado la capacidad máxima del armario.
+Ampliar armário · %s|Expand cabinet · %s|Ampliar armario · %s
+Amplie o armário de %d para %d espaços.|Expand the cabinet from %d to %d slots.|Amplía el armario de %d a %d espacios.
+Ampliar o armário para %d espaços por %s?|Expand the cabinet to %d slots for %s?|¿Ampliar el armario a %d espacios por %s?
+CONFIRMAR COMPRA / ARMÁRIO|CONFIRM PURCHASE / CABINET|CONFIRMAR COMPRA / ARMARIO"""
 
 static func catalog() -> Dictionary:
 	var messages := {"pt": {}, "en": {}, "es": {}}
