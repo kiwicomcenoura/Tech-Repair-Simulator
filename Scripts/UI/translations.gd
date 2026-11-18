@@ -179,6 +179,7 @@ INSPEÇÃO VISUAL  /  DESKTOP ATX|VISUAL INSPECTION  /  ATX DESKTOP|INSPECCIÓN 
 Gabinete — lateral esquerda|Case — left side|Caja — lado izquierdo
 Gabinete — vista 3D|Case — 3D view|Caja — vista 3D
 Vista 3D|3D View|Vista 3D
+Em breve!|Coming soon!|¡Próximamente!
 Vista 2D|2D View|Vista 2D
 Clique para usar a ferramenta · Arraste para girar · Roda para zoom · Botão direito para restaurar.|Click to use the tool · Drag to rotate · Scroll to zoom · Right-click to reset.|Clic para usar la herramienta · Arrastra para girar · Rueda para zoom · Clic derecho para restablecer.
 1 · Mãos: peças, conectores e travas↵2 · Phillips: parafusos↵Conectores soltos ficam fora do encaixe.|1 · Hands: parts, connectors and latches↵2 · Phillips: screws↵Unplugged connectors sit outside their sockets.|1 · Manos: piezas, conectores y pestañas↵2 · Phillips: tornillos↵Los conectores sueltos quedan fuera de su toma.

@@ -209,8 +209,17 @@ func run() -> void:
 	canvas = ui.inspection.canvas
 	var preview: SubViewportContainer = ui.inspection.preview
 	var preview_toggle: Button = ui.inspection.get_node("%PreviewToggle")
+	var availability: Label = preview_toggle.get_parent().get_node("PreviewAvailability")
+	var button_bottom := preview_toggle.position.y + preview_toggle.size.y
+	check(preview_toggle.is_visible_in_tree() and preview_toggle.disabled, "3D button is visible and disabled")
+	check(availability.is_visible_in_tree() and availability.text == "Em breve!" and availability.position.y >= button_bottom,
+		"Coming soon message appears below the 3D button")
 	await click(preview_toggle)
-	check(preview.is_visible_in_tree() and not canvas.visible and paused, "3D view opens in the paused bench")
+	check(canvas.is_visible_in_tree() and not preview.visible and paused, "Clicking the disabled button leaves 2D inspection open")
+	# Exercise the preview directly while the player-facing button is disabled.
+	ui.inspection._show_preview(true)
+	await frames()
+	check(preview.is_visible_in_tree() and not canvas.visible and paused, "3D view renders in the paused bench")
 	check(preview._model._cover.visible and preview._model._screws.all(func(screw: Node3D) -> bool: return screw.visible), "3D view reflects the fitted cover and screws")
 	var pivot_before: Basis = preview._model.basis
 	var camera_size: float = preview._camera.size
@@ -234,7 +243,8 @@ func run() -> void:
 	check(preview._model._part_faces.gpu.material_override.albedo_texture != null, "3D hardware uses the game artwork")
 	await capture("3d-cover")
 	await verify_3d_assembly(preview, pc, originals)
-	await click(preview_toggle)
+	ui.inspection._show_preview(false)
+	await frames()
 	check(canvas.visible and not preview.visible, "Returning to the 2D repair view restores its canvas")
 	check(canvas.layers.chassis.get_width() == 1280, "Inspection chassis has original 4x resolution")
 	for point in canvas.SCREW_POINTS.gpu:
@@ -258,10 +268,12 @@ func run() -> void:
 	for p in canvas.LATCHES: await art(p)
 	await art(Vector2(149,74))
 	check(not pc.components.has("ram"),"RAM physically removed via clips")
-	await click(preview_toggle)
+	ui.inspection._show_preview(true)
+	await frames()
 	check(not preview._model._cover.visible and not preview._model._parts.ram.visible and preview._model._parts.gpu.visible, "3D view mirrors cover and component removal")
 	await capture("3d-interior")
-	await click(preview_toggle)
+	ui.inspection._show_preview(false)
+	await frames()
 	for kind in ["gpu","storage","psu","cooling","cpu","motherboard"]:
 		ui.inspection.session.select_tool(&"phillips")
 		for i in range(model.FASTENERS[kind]):

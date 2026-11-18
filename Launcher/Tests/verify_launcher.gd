@@ -25,13 +25,7 @@ func settled(launcher: Control) -> bool:
 	return launcher._job == launcher.Job.IDLE
 
 
-func run() -> void:
-	var launcher: Control = preload("res://Launcher.tscn").instantiate()
-	var port: int = launcher._get_fixture_port()
-	if port == 0:
-		printerr("Acrescente -- --fixture-port=47813 na chamada.")
-		quit(1)
-		return
+func make_package(build: int) -> PackedByteArray:
 	var temporary := ProjectSettings.globalize_path("user://launcher-test-%d.zip" % OS.get_process_id())
 	var fake_executable := PackedByteArray()
 	fake_executable.resize(8192)
@@ -40,18 +34,33 @@ func run() -> void:
 	fake_executable.encode_u32(64, 0x4550)
 	fake_executable.encode_u16(68, 0x8664)
 	fake_executable.encode_u16(88, 0x20b)
+	fake_executable[1024] = build
 	var zip := ZIPPacker.new()
 	if zip.open(temporary) != OK:
-		printerr("Não foi possível criar o pacote de teste.")
-		quit(1)
-		return
+		return PackedByteArray()
 	zip.start_file(Store.GAME_EXE)
 	zip.write_file(fake_executable)
 	zip.close_file()
 	zip.close()
 	var package := FileAccess.get_file_as_bytes(temporary)
 	DirAccess.remove_absolute(temporary)
-	if _server.start(port, package) != OK:
+	return package
+
+
+func run() -> void:
+	var launcher: Control = preload("res://Launcher.tscn").instantiate()
+	var port: int = launcher._get_fixture_port()
+	if port == 0:
+		printerr("Acrescente -- --fixture-port=47813 na chamada.")
+		quit(1)
+		return
+	var first_package := make_package(0)
+	var update_package := make_package(1)
+	if first_package.is_empty() or update_package.is_empty():
+		printerr("Não foi possível criar os pacotes de teste.")
+		quit(1)
+		return
+	if _server.start(port, first_package) != OK:
 		printerr("Porta de fixture indisponível.")
 		quit(1)
 		return
@@ -63,14 +72,24 @@ func run() -> void:
 	launcher._download()
 	check(await settled(launcher) and launcher._installed.get("version") == "v0.1.0", "Verified package is installed over HTTP")
 	check("abriria o jogo v0.1.0" in launcher._status.text, "Installation triggers launch intent")
+	var original_executable: String = launcher._installed.get("executable", "")
+	var original_hash := FileAccess.get_sha256(original_executable)
 	launcher._check_release()
-	check(await settled(launcher) and "abriria o jogo v0.1.0" in launcher._status.text, "Current version automatically triggers launch intent")
+	check(await settled(launcher) and not launcher._install_button.visible, "Current version offers no update")
+	check("abriria o jogo v0.1.0" in launcher._status.text, "Current version automatically triggers launch intent")
 
-	_server.version = "v0.2.0"
+	_server.stop()
+	_server.version = "v0.1.1"
+	if _server.start(port, update_package) != OK:
+		printerr("Não foi possível iniciar o servidor com o pacote de atualização.")
+		quit(1)
+		return
 	_server.fault = "truncate"
 	launcher._check_release()
-	check(await settled(launcher) and launcher._install_button.text == "Atualizar", "New release offers update")
-	launcher._download()
+	var update_button: Button = launcher._install_button
+	check(await settled(launcher) and update_button.visible and not update_button.disabled and update_button.text == "Atualizar",
+		"v0.1.1 offers an enabled update button")
+	launcher._install_button.pressed.emit()
 	check(await settled(launcher) and launcher._install_button.text == "Tentar novamente", "Interrupted download is retryable")
 	check(launcher._store.installed().get("version") == "v0.1.0", "Interrupted download preserves the previous installation")
 	_server.fault = "digest"
@@ -83,13 +102,24 @@ func run() -> void:
 	launcher._check_release()
 	check(await settled(launcher), "Clean release loaded")
 	launcher._download()
-	check(await settled(launcher) and launcher._store.installed().get("version") == "v0.2.0", "Update commits a new installation")
+	check(await settled(launcher), "Update completes")
+	var updated: Dictionary = launcher._store.installed()
+	check(updated.get("version") == "v0.1.1" and launcher._installed == updated, "The launcher and install store select v0.1.1")
+	var updated_executable: String = updated.get("executable", "")
+	var updated_bytes := FileAccess.get_file_as_bytes(updated_executable)
+	check(updated_executable != original_executable and updated_bytes.size() == 8192 and updated_bytes[1024] == 1,
+		"The active executable comes from the new package")
+	check(not original_hash.is_empty() and FileAccess.get_sha256(original_executable) == original_hash,
+		"The previous executable remains intact")
 	_server.stop()
 	process_frame.disconnect(_server.tick)
 	launcher._check_release()
 	check(await settled(launcher) and not launcher._offline.disabled, "Connection error enables offline mode")
 	launcher._launch_game()
-	check("abriria o jogo v0.2.0" in launcher._status.text, "Offline launches the installed version")
+	check("abriria o jogo v0.1.1" in launcher._status.text, "Offline launches the updated version")
+	check(Release.is_newer("v0.1.1", "v0.1.0"), "v0.1.1 is newer than v0.1.0")
+	check(not Release.is_newer("v0.1.0", "v0.1.1") and not Release.is_newer("v0.1.1", "v0.1.1"),
+		"Older and equal releases do not qualify for an update")
 	check(Release.is_newer("v0.10.0", "v0.9.0") and not Release.is_newer("v0.2.0-beta", "v0.1.0"), "Version comparison is numeric and stable")
 	print("LAUNCHER TESTS · failures: ", _failures)
 	quit(1 if _failures > 0 else 0)

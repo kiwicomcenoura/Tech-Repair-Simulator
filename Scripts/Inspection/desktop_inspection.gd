@@ -197,7 +197,6 @@ func configure(value: RefCounted) -> void:
 
 func _show_preview(active: bool) -> void:
 	active = active and session != null
-	%PreviewToggle.disabled = session == null
 	%PreviewToggle.text = "Vista 2D" if active else "Vista 3D"
 	%Title.text = "Gabinete — vista 3D" if active else "Gabinete — lateral esquerda"
 	preview.visible = active
