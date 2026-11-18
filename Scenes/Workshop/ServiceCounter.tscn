@@ -1,0 +1,155 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/World/workshop_finish.gd" id="9_finish"]
+
+[ext_resource type="Texture2D" path="res://Assets/Workshop/metal_grain.png" id="2_grain"]
+
+[ext_resource type="Script" path="res://Scripts/World/isometric_depth.gd" id="1_depth"]
+
+[node name="ServiceCounter" type="Node2D"]
+script = ExtResource("1_depth")
+texture_filter = 1
+texture_repeat = 2
+
+[node name="Surface42" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-165, -82.5, 0, 0, 0, -53, -165, -135.5)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface43" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(65, -32.5, 0, 0, 0, -53, 65, -85.5)
+color = Color(0.09, 0.14, 0.2, 1)
+
+[node name="Surface44" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-100, -168, 65, -85.5, 0, -53, -165, -135.5)
+color = Color(0.39, 0.45, 0.54, 1)
+
+[node name="Surface45" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-159, -135.5, 0, -56, 0, -62, -159, -141.5)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface46" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(59, -85.5, 0, -56, 0, -62, 59, -91.5)
+color = Color(0.09, 0.14, 0.2, 1)
+
+[node name="Surface47" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-100, -171, 59, -91.5, 0, -62, -159, -141.5)
+color = Color(0.15, 0.29, 0.44, 1)
+
+[node name="Surface48" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-42, -93, -2, -73, -2, -76, -42, -96)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface49" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(25, -86.5, -2, -73, -2, -76, 25, -89.5)
+color = Color(0.09, 0.14, 0.2, 1)
+
+[node name="Surface50" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-15, -109.5, 25, -89.5, -2, -76, -42, -96)
+color = Color(0.55, 0.6, 0.67, 1)
+
+[node name="Surface51" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-119, -136.5, -92, -123, -92, -125, -119, -138.5)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface52" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-74, -132, -92, -123, -92, -125, -74, -134)
+color = Color(0.09, 0.14, 0.2, 1)
+
+[node name="Surface53" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-101, -147.5, -74, -134, -92, -125, -119, -138.5)
+color = Color(0.07, 0.1, 0.14, 1)
+
+[node name="Body" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Solid54" type="CollisionPolygon2D" parent="Body"]
+polygon = PackedVector2Array(-100, -115, 65, -32.5, 0, 0, -165, -82.5)
+
+
+[node name="Details" type="Node2D" parent="."]
+
+[node name="InsetPanel99" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-55.766666666666666, -33.78333333333333, -8.1, -9.95, -8.1, -49.95, -55.766666666666666, -73.78333333333333)
+color = Color(0.114, 0.165, 0.231, 1)
+
+[node name="PanelRim100" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-53.86666666666667, -69.73333333333333, -10.2, -47.9, -10.2, -49.9, -53.86666666666667, -71.73333333333333)
+color = Color(0.267, 0.333, 0.420, 1)
+
+[node name="Handle101" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-39.133333333333326, -55.266666666666666, -25.133333333333333, -48.266666666666666, -25.133333333333333, -51.266666666666666, -39.133333333333326, -58.266666666666666)
+color = Color(0.498, 0.573, 0.639, 1)
+
+[node name="ToeKick102" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-55.86666666666667, -30.73333333333333, -8.2, -6.9, -8.2, -9.9, -55.86666666666667, -33.733333333333334)
+color = Color(0.063, 0.098, 0.137, 1)
+
+[node name="InsetPanel103" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-105.43333333333332, -58.61666666666667, -57.766666666666666, -34.78333333333333, -57.766666666666666, -74.78333333333333, -105.43333333333332, -98.61666666666667)
+color = Color(0.114, 0.165, 0.231, 1)
+
+[node name="PanelRim104" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-103.53333333333333, -94.56666666666666, -59.86666666666667, -72.73333333333333, -59.86666666666667, -74.73333333333333, -103.53333333333333, -96.56666666666666)
+color = Color(0.267, 0.333, 0.420, 1)
+
+[node name="Handle105" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-88.8, -80.1, -74.8, -73.1, -74.8, -76.1, -88.8, -83.1)
+color = Color(0.498, 0.573, 0.639, 1)
+
+[node name="ToeKick106" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-105.53333333333333, -55.56666666666666, -57.86666666666667, -31.73333333333333, -57.86666666666667, -34.733333333333334, -105.53333333333333, -58.56666666666666)
+color = Color(0.063, 0.098, 0.137, 1)
+
+[node name="InsetPanel107" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-155.1, -83.45, -107.43333333333332, -59.61666666666667, -107.43333333333332, -99.61666666666667, -155.1, -123.45)
+color = Color(0.114, 0.165, 0.231, 1)
+
+[node name="PanelRim108" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-153.2, -119.4, -109.53333333333333, -97.56666666666666, -109.53333333333333, -99.56666666666666, -153.2, -121.4)
+color = Color(0.267, 0.333, 0.420, 1)
+
+[node name="Handle109" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-138.46666666666667, -104.93333333333332, -124.46666666666665, -97.93333333333334, -124.46666666666665, -100.93333333333334, -138.46666666666667, -107.93333333333332)
+color = Color(0.498, 0.573, 0.639, 1)
+
+[node name="ToeKick110" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-155.2, -80.4, -107.53333333333333, -56.56666666666666, -107.53333333333333, -59.56666666666666, -155.2, -83.4)
+color = Color(0.063, 0.098, 0.137, 1)
+
+[node name="ServiceStripe111" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-160.3, -87.85, -5.3, -10.35, -5.3, -13.35, -160.3, -90.85)
+color = Color(0.169, 0.341, 0.435, 1)
+
+[node name="Receipt112" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-15, -99.8, 7, -88.8, -6, -82.3, -28, -93.3)
+color = Color(0.761, 0.816, 0.847, 1)
+
+[node name="ReceiptLine113" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-19, -92.9, -6, -86.4, -7, -85.9, -20, -92.4)
+color = Color(0.424, 0.522, 0.592, 1)
+
+[node name="ReceiptLine114" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-16, -94.4, -3, -87.9, -4, -87.4, -17, -93.9)
+color = Color(0.424, 0.522, 0.592, 1)
+
+[node name="ReceiptLine115" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-13, -95.9, 0, -89.4, -1, -88.9, -14, -95.4)
+color = Color(0.424, 0.522, 0.592, 1)
+
+
+[node name="VisualFinish" type="Node2D" parent="."]
+script = ExtResource("9_finish")
+

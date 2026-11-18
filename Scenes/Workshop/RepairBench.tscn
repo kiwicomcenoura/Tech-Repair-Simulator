@@ -1,0 +1,121 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/World/workshop_finish.gd" id="9_finish"]
+
+[ext_resource type="Texture2D" path="res://Assets/Workshop/metal_grain.png" id="2_grain"]
+
+[ext_resource type="Script" path="res://Scripts/World/isometric_depth.gd" id="1_depth"]
+[ext_resource type="Script" path="res://Scripts/World/maintenance_bench_interaction.gd" id="3_interaction"]
+[ext_resource type="Script" path="res://Scripts/Equipment/bench_equipment_dock.gd" id="4_dock"]
+[ext_resource type="Script" path="res://Scripts/World/bench_station.gd" id="5_station"]
+
+[node name="RepairBench" type="Node2D"]
+script = ExtResource("1_depth")
+texture_filter = 1
+texture_repeat = 2
+
+[node name="Interaction" type="Node" parent="."]
+script = ExtResource("3_interaction")
+
+[node name="EquipmentDock" type="Node2D" parent="."]
+process_mode = 3
+script = ExtResource("4_dock")
+
+[node name="EquipmentSlot" type="Marker2D" parent="EquipmentDock"]
+process_mode = 1
+position = Vector2(-55, -100)
+
+[node name="Surface1" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-170, -85, 0, 0, 0, -42, -170, -127)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface2" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(65, -32.5, 0, 0, 0, -42, 65, -74.5)
+color = Color(0.09, 0.14, 0.2, 1)
+
+[node name="Surface3" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-105, -159.5, 65, -74.5, 0, -42, -170, -127)
+color = Color(0.39, 0.45, 0.54, 1)
+
+[node name="Surface4" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-158, -126, -2, -48, -2, -53, -158, -131)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface5" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(51, -74.5, -2, -48, -2, -53, 51, -79.5)
+color = Color(0.09, 0.14, 0.2, 1)
+
+[node name="Surface6" type="Polygon2D" parent="."]
+texture = ExtResource("2_grain")
+polygon = PackedVector2Array(-105, -157.5, 51, -79.5, -2, -53, -158, -131)
+color = Color(0.55, 0.6, 0.67, 1)
+
+[node name="Body" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Solid19" type="CollisionPolygon2D" parent="Body"]
+polygon = PackedVector2Array(-105, -117.5, 65, -32.5, 0, 0, -170, -85)
+
+
+[node name="Details" type="Node2D" parent="."]
+
+[node name="InsetPanel70" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-57.43333333333334, -34.61666666666667, -8.1, -9.95, -8.1, -38.95, -57.43333333333334, -63.61666666666667)
+color = Color(0.114, 0.165, 0.231, 1)
+
+[node name="PanelRim71" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-55.53333333333334, -59.56666666666666, -10.2, -36.9, -10.2, -38.9, -55.53333333333334, -61.56666666666666)
+color = Color(0.267, 0.333, 0.420, 1)
+
+[node name="Handle72" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-39.96666666666667, -44.68333333333334, -25.966666666666672, -37.68333333333334, -25.966666666666672, -40.68333333333334, -39.96666666666667, -47.68333333333334)
+color = Color(0.498, 0.573, 0.639, 1)
+
+[node name="ToeKick73" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-57.53333333333334, -31.566666666666666, -8.2, -6.9, -8.2, -9.9, -57.53333333333334, -34.56666666666666)
+color = Color(0.063, 0.098, 0.137, 1)
+
+[node name="InsetPanel74" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-108.76666666666667, -60.28333333333334, -59.43333333333334, -35.61666666666667, -59.43333333333334, -64.61666666666667, -108.76666666666667, -89.28333333333333)
+color = Color(0.114, 0.165, 0.231, 1)
+
+[node name="PanelRim75" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-106.86666666666667, -85.23333333333333, -61.53333333333334, -62.56666666666666, -61.53333333333334, -64.56666666666666, -106.86666666666667, -87.23333333333333)
+color = Color(0.267, 0.333, 0.420, 1)
+
+[node name="Handle76" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-91.3, -70.35, -77.3, -63.35, -77.3, -66.35, -91.3, -73.35)
+color = Color(0.498, 0.573, 0.639, 1)
+
+[node name="ToeKick77" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-108.86666666666667, -57.233333333333334, -59.53333333333334, -32.56666666666666, -59.53333333333334, -35.56666666666666, -108.86666666666667, -60.233333333333334)
+color = Color(0.063, 0.098, 0.137, 1)
+
+[node name="InsetPanel78" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-160.1, -85.95, -110.76666666666667, -61.28333333333334, -110.76666666666667, -90.28333333333333, -160.1, -114.95)
+color = Color(0.114, 0.165, 0.231, 1)
+
+[node name="PanelRim79" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-158.2, -110.9, -112.86666666666667, -88.23333333333333, -112.86666666666667, -90.23333333333333, -158.2, -112.9)
+color = Color(0.267, 0.333, 0.420, 1)
+
+[node name="Handle80" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-142.63333333333335, -96.01666666666667, -128.63333333333335, -89.01666666666667, -128.63333333333335, -92.01666666666667, -142.63333333333335, -99.01666666666667)
+color = Color(0.498, 0.573, 0.639, 1)
+
+[node name="ToeKick81" type="Polygon2D" parent="Details"]
+polygon = PackedVector2Array(-160.2, -82.9, -110.86666666666667, -58.233333333333334, -110.86666666666667, -61.233333333333334, -160.2, -85.9)
+color = Color(0.063, 0.098, 0.137, 1)
+
+[node name="TestStation" type="Node2D" parent="."]
+script = ExtResource("5_station")
+
+[node name="VisualFinish" type="Node2D" parent="."]
+script = ExtResource("9_finish")
+

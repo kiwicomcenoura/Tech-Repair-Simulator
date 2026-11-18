@@ -1,0 +1,273 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/Inspection/desktop_inspection.gd" id="1_view"]
+[ext_resource type="Script" path="res://Scripts/Inspection/desktop_canvas.gd" id="2_canvas"]
+[ext_resource type="Texture2D" path="res://Assets/Inspection/phillips.png" id="3_tool"]
+[ext_resource type="Theme" path="res://Themes/maintenance_bench.tres" id="4_theme"]
+[ext_resource type="Script" path="res://Scripts/Inspection/desktop_preview_3d.gd" id="5_preview"]
+
+[node name="InspectionView" type="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+theme = ExtResource("4_theme")
+script = ExtResource("1_view")
+
+[node name="InspectionHeader" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="Titles" type="VBoxContainer" parent="InspectionHeader"]
+layout_mode = 2
+theme_override_constants/separation = 10
+size_flags_horizontal = 3
+
+
+[node name="Eyebrow" type="Label" parent="InspectionHeader/Titles"]
+layout_mode = 2
+text = "INSPEÇÃO VISUAL  /  DESKTOP ATX"
+theme_type_variation = &"Eyebrow"
+
+
+[node name="Description" type="Label" parent="InspectionHeader/Titles"]
+layout_mode = 2
+text = "Desligado e sem alimentação. Clique diretamente no gabinete."
+theme_type_variation = &"Muted"
+
+
+[node name="ReturnToBench" type="Button" parent="InspectionHeader"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "← Voltar à bancada"
+mouse_default_cursor_shape = 2
+tooltip_text = "Voltar sem perder o estado da inspeção (ESC)"
+
+[node name="Workspace" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+size_flags_vertical = 3
+
+
+[node name="CasePanel" type="PanelContainer" parent="Workspace"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+
+[node name="Content" type="VBoxContainer" parent="Workspace/CasePanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+size_flags_vertical = 3
+
+
+[node name="Header" type="HBoxContainer" parent="Workspace/CasePanel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="Title" type="Label" parent="Workspace/CasePanel/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Gabinete — lateral esquerda"
+size_flags_horizontal = 3
+
+
+[node name="LidStatus" type="Label" parent="Workspace/CasePanel/Content/Header"]
+layout_mode = 2
+text = "Tampa instalada"
+theme_type_variation = &"Eyebrow"
+unique_name_in_owner = true
+
+[node name="PreviewToggle" type="Button" parent="Workspace/CasePanel/Content/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 32)
+text = "Vista 3D"
+mouse_default_cursor_shape = 2
+
+
+[node name="DesktopCanvas" type="Control" parent="Workspace/CasePanel/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 300)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_default_cursor_shape = 2
+texture_filter = 1
+script = ExtResource("2_canvas")
+
+[node name="DesktopPreview3D" type="SubViewportContainer" parent="Workspace/CasePanel/Content"]
+unique_name_in_owner = true
+visible = false
+clip_contents = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 300)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_force_pass_scroll_events = false
+stretch = true
+script = ExtResource("5_preview")
+
+[node name="HoverName" type="Label" parent="Workspace/CasePanel/Content"]
+layout_mode = 2
+text = "Passe o mouse sobre o gabinete."
+theme_type_variation = &"Muted"
+unique_name_in_owner = true
+autowrap_mode = 2
+
+
+[node name="ToolsPanel" type="PanelContainer" parent="Workspace"]
+layout_mode = 2
+custom_minimum_size = Vector2(270, 0)
+
+[node name="ToolScroll" type="ScrollContainer" parent="Workspace/ToolsPanel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="Workspace/ToolsPanel/ToolScroll"]
+layout_mode = 2
+theme_override_constants/separation = 8
+size_flags_horizontal = 3
+
+
+[node name="ToolHeading" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "FERRAMENTAS"
+theme_type_variation = &"Eyebrow"
+
+
+[node name="ToolSelection" type="HBoxContainer" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="Phillips" type="Button" parent="Workspace/ToolsPanel/ToolScroll/Content/ToolSelection"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Phillips"
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 3
+toggle_mode = true
+icon = ExtResource("3_tool")
+expand_icon = true
+theme_override_constants/icon_max_width = 32
+tooltip_text = "Selecionar chave Phillips para soltar ou fixar parafusos"
+
+[node name="Hands" type="Button" parent="Workspace/ToolsPanel/ToolScroll/Content/ToolSelection"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Mãos"
+mouse_default_cursor_shape = 2
+size_flags_horizontal = 3
+toggle_mode = true
+button_pressed = true
+tooltip_text = "Selecionar mãos livres"
+
+[node name="ToolHelp" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "Use a Phillips nos quatro parafusos da tampa."
+theme_type_variation = &"Muted"
+autowrap_mode = 2
+
+
+[node name="ToolDivider" type="HSeparator" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+
+[node name="FastenerHeading" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "FIXAÇÃO DA TAMPA"
+theme_type_variation = &"Eyebrow"
+
+
+[node name="ScrewCount" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "0 / 4 parafusos retirados"
+unique_name_in_owner = true
+
+
+[node name="ScrewStatus" type="GridContainer" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+columns = 2
+theme_override_constants/h_separation = 22
+theme_override_constants/v_separation = 8
+
+[node name="Screw0" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content/ScrewStatus"]
+layout_mode = 2
+text = "1  Fixado"
+theme_type_variation = &"Muted"
+unique_name_in_owner = true
+
+
+[node name="Screw1" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content/ScrewStatus"]
+layout_mode = 2
+text = "2  Fixado"
+theme_type_variation = &"Muted"
+unique_name_in_owner = true
+
+
+[node name="Screw2" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content/ScrewStatus"]
+layout_mode = 2
+text = "3  Fixado"
+theme_type_variation = &"Muted"
+unique_name_in_owner = true
+
+
+[node name="Screw3" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content/ScrewStatus"]
+layout_mode = 2
+text = "4  Fixado"
+theme_type_variation = &"Muted"
+unique_name_in_owner = true
+
+
+[node name="LidAction" type="Button" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Retirar tampa"
+mouse_default_cursor_shape = 2
+tooltip_text = "Também é possível clicar na própria tampa"
+
+[node name="SelectionDivider" type="HSeparator" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+
+[node name="SelectionHeading" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "SELECIONADO"
+theme_type_variation = &"Eyebrow"
+
+
+[node name="SelectedName" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "Nenhuma peça selecionada"
+unique_name_in_owner = true
+autowrap_mode = 2
+
+
+[node name="SelectedInfo" type="Label" parent="Workspace/ToolsPanel/ToolScroll/Content"]
+layout_mode = 2
+text = "Solte os quatro parafusos com a Phillips antes de retirar a tampa."
+theme_type_variation = &"Muted"
+unique_name_in_owner = true
+autowrap_mode = 2
+
+
+[node name="ContextPanel" type="PanelContainer" parent="."]
+layout_mode = 2
+
+
+[node name="Content" type="VBoxContainer" parent="ContextPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+
+[node name="ContextMessage" type="Label" parent="ContextPanel/Content"]
+layout_mode = 2
+text = "Selecione a chave Phillips e clique em um dos quatro parafusos."
+unique_name_in_owner = true
+autowrap_mode = 2
+
+

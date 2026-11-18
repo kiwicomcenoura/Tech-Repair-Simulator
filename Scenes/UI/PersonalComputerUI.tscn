@@ -1,0 +1,223 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/UI/TechOS/Desktop.tscn" id="3_techos"]
+
+[ext_resource type="Script" path="res://Scripts/PersonalComputer/personal_computer_ui.gd" id="1_ui"]
+[ext_resource type="Theme" path="res://Themes/maintenance_bench.tres" id="2_theme"]
+
+[sub_resource type="StyleBoxFlat" id="BootFill"]
+bg_color = Color(0.28, 0.75, 0.88, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_left = 4
+corner_radius_bottom_right = 4
+
+[node name="PersonalComputerUI" type="CanvasLayer"]
+process_mode = 3
+layer = 21
+script = ExtResource("1_ui")
+
+[node name="PersonalOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_theme")
+
+[node name="Dimmer" type="ColorRect" parent="PersonalOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.07, 0.72)
+
+[node name="Margins" type="MarginContainer" parent="PersonalOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 44
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 44
+
+[node name="PersonalWindow" type="PanelContainer" parent="PersonalOverlay/Margins"]
+layout_mode = 2
+theme_type_variation = &"WindowPanel"
+
+[node name="Layout" type="VBoxContainer" parent="PersonalOverlay/Margins/PersonalWindow"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+
+[node name="Header" type="HBoxContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+
+[node name="Titles" type="VBoxContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout/Header"]
+layout_mode = 2
+theme_override_constants/separation = 18
+size_flags_horizontal = 3
+
+
+[node name="Caption" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/Header/Titles"]
+layout_mode = 2
+text = "COMPUTADOR PESSOAL  /  TECHOS"
+theme_type_variation = &"Eyebrow"
+
+[node name="Title" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/Header/Titles"]
+layout_mode = 2
+text = "Computador da oficina"
+theme_override_font_sizes/font_size = 26
+
+[node name="PersonalStatus" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/Header"]
+layout_mode = 2
+text = "DESLIGADO"
+unique_name_in_owner = true
+theme_type_variation = &"Eyebrow"
+size_flags_vertical = 4
+
+[node name="PowerToggle" type="Button" parent="PersonalOverlay/Margins/PersonalWindow/Layout/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+text = "Ligar computador"
+mouse_default_cursor_shape = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(190, 44)
+size_flags_vertical = 4
+
+[node name="PersonalClose" type="Button" parent="PersonalOverlay/Margins/PersonalWindow/Layout/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 44)
+text = "×"
+mouse_default_cursor_shape = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(42, 44)
+theme_override_font_sizes/font_size = 24
+size_flags_vertical = 4
+tooltip_text = "Fechar (ESC)"
+
+[node name="Divider" type="HSeparator" parent="PersonalOverlay/Margins/PersonalWindow/Layout"]
+layout_mode = 2
+
+[node name="OffScreen" type="PanelContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+
+[node name="Center" type="CenterContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout/OffScreen"]
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout/OffScreen/Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+
+[node name="Symbol" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/OffScreen/Center/Content"]
+layout_mode = 2
+text = "I / O"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 48
+theme_override_colors/font_color = Color(0.35, 0.64, 0.75, 1)
+
+[node name="Title" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/OffScreen/Center/Content"]
+layout_mode = 2
+text = "Computador desligado"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 26
+
+[node name="Hint" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/OffScreen/Center/Content"]
+layout_mode = 2
+text = "Use Ligar computador para iniciar o ambiente de administração."
+horizontal_alignment = 1
+theme_type_variation = &"Muted"
+
+[node name="BootScreen" type="PanelContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+
+
+[node name="Center" type="CenterContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen"]
+layout_mode = 2
+
+[node name="Content" type="VBoxContainer" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center"]
+layout_mode = 2
+theme_override_constants/separation = 18
+custom_minimum_size = Vector2(500, 0)
+
+[node name="Logo" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center/Content"]
+layout_mode = 2
+text = "TechOS"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 38
+
+[node name="Caption" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center/Content"]
+layout_mode = 2
+text = "SISTEMA LOCAL DA OFICINA"
+horizontal_alignment = 1
+theme_type_variation = &"Eyebrow"
+
+[node name="Spacer" type="Control" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 14)
+
+[node name="BootStatus" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center/Content"]
+layout_mode = 2
+text = "Inicializando o computador…"
+horizontal_alignment = 1
+unique_name_in_owner = true
+
+[node name="BootProgress" type="ProgressBar" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(0, 12)
+show_percentage = false
+theme_override_styles/fill = SubResource("BootFill")
+
+[node name="Hint" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout/BootScreen/Center/Content"]
+layout_mode = 2
+text = "Você pode desligar ou fechar a tela durante a inicialização."
+horizontal_alignment = 1
+theme_type_variation = &"Muted"
+
+[node name="DesktopScreen" parent="PersonalOverlay/Margins/PersonalWindow/Layout" instance=ExtResource("3_techos")]
+unique_name_in_owner = true
+visible = false
+
+[node name="Footer" type="Label" parent="PersonalOverlay/Margins/PersonalWindow/Layout"]
+layout_mode = 2
+text = "Computador pessoal do jogador • Separado dos equipamentos em manutenção"
+theme_type_variation = &"Muted"
+
+[node name="PersonalPrompt" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -86.0
+offset_right = 160.0
+offset_bottom = -36.0
+mouse_filter = 2
+theme = ExtResource("2_theme")
+
+[node name="Text" type="Label" parent="PersonalPrompt"]
+layout_mode = 2
+text = "F — Acessar computador"
+horizontal_alignment = 1
+mouse_filter = 2
+

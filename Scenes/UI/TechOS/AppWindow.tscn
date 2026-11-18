@@ -1,0 +1,182 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/TechOS/app_window.gd" id="1_window"]
+[ext_resource type="Script" path="res://Scripts/TechOS/app_icon.gd" id="2_icon"]
+
+[node name="AppWindow" type="PanelContainer"]
+custom_minimum_size = Vector2(420, 300)
+layout_mode = 0
+offset_right = 650.0
+offset_bottom = 420.0
+theme_type_variation = &"AppFrame"
+script = ExtResource("1_window")
+
+[node name="Layout" type="VBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="TitleMargin" type="MarginContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/margin_left = 9
+theme_override_constants/margin_right = 9
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_bottom = 9
+
+[node name="TitleBar" type="HBoxContainer" parent="Layout/TitleMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+unique_name_in_owner = true
+mouse_filter = 0
+mouse_default_cursor_shape = 6
+custom_minimum_size = Vector2(0, 34)
+
+[node name="AppIcon" type="Control" parent="Layout/TitleMargin/TitleBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(26, 26)
+mouse_filter = 2
+script = ExtResource("2_icon")
+
+[node name="AppTitle" type="Label" parent="Layout/TitleMargin/TitleBar"]
+layout_mode = 2
+mouse_filter = 2
+text = "Aplicativo"
+size_flags_horizontal = 3
+unique_name_in_owner = true
+
+
+[node name="MinimizeApp" type="Button" parent="Layout/TitleMargin/TitleBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(34, 30)
+text = "—"
+mouse_default_cursor_shape = 2
+tooltip_text = "Minimizar janela"
+
+[node name="CloseApp" type="Button" parent="Layout/TitleMargin/TitleBar"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(34, 30)
+text = "×"
+mouse_default_cursor_shape = 2
+tooltip_text = "Fechar janela"
+
+[node name="Divider" type="HSeparator" parent="Layout"]
+layout_mode = 2
+
+[node name="BodyMargin" type="MarginContainer" parent="Layout"]
+size_flags_vertical = 3
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_bottom = 14
+
+[node name="Body" type="HBoxContainer" parent="Layout/BodyMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+size_flags_vertical = 3
+
+
+[node name="Sidebar" type="PanelContainer" parent="Layout/BodyMargin/Body"]
+layout_mode = 2
+custom_minimum_size = Vector2(116, 0)
+mouse_filter = 1
+
+[node name="Content" type="VBoxContainer" parent="Layout/BodyMargin/Body/Sidebar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+
+[node name="Section" type="Label" parent="Layout/BodyMargin/Body/Sidebar/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "ESPAÇO LOCAL"
+theme_type_variation = &"Accent"
+
+[node name="Overview" type="Label" parent="Layout/BodyMargin/Body/Sidebar/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Visão geral"
+
+
+[node name="Space" type="Control" parent="Layout/BodyMargin/Body/Sidebar/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Local" type="Label" parent="Layout/BodyMargin/Body/Sidebar/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "TechOS\nSessão local"
+theme_type_variation = &"Muted"
+
+[node name="Main" type="VBoxContainer" parent="Layout/BodyMargin/Body"]
+layout_mode = 2
+theme_override_constants/separation = 12
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+
+[node name="SectionTitle" type="Label" parent="Layout/BodyMargin/Body/Main"]
+layout_mode = 2
+mouse_filter = 2
+text = "Aplicativo"
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 21
+
+[node name="EmptyCard" type="PanelContainer" parent="Layout/BodyMargin/Body/Main"]
+layout_mode = 2
+mouse_filter = 1
+size_flags_vertical = 3
+
+
+[node name="Center" type="CenterContainer" parent="Layout/BodyMargin/Body/Main/EmptyCard"]
+layout_mode = 2
+mouse_filter = 1
+
+[node name="Content" type="VBoxContainer" parent="Layout/BodyMargin/Body/Main/EmptyCard/Center"]
+layout_mode = 2
+theme_override_constants/separation = 12
+size_flags_horizontal = 3
+
+
+[node name="EmptyIcon" type="Control" parent="Layout/BodyMargin/Body/Main/EmptyCard/Center/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+mouse_filter = 2
+script = ExtResource("2_icon")
+
+[node name="EmptyTitle" type="Label" parent="Layout/BodyMargin/Body/Main/EmptyCard/Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Nenhum dado disponível"
+unique_name_in_owner = true
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+
+[node name="EmptyDescription" type="Label" parent="Layout/BodyMargin/Body/Main/EmptyCard/Center/Content"]
+layout_mode = 2
+mouse_filter = 2
+text = "Aplicativo em preparação."
+unique_name_in_owner = true
+horizontal_alignment = 1
+autowrap_mode = 2
+custom_minimum_size = Vector2(270, 0)
+theme_type_variation = &"Muted"
+
+[node name="FooterMargin" type="MarginContainer" parent="Layout"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Footer" type="Label" parent="Layout/FooterMargin"]
+layout_mode = 2
+mouse_filter = 2
+text = "Ambiente local · Aplicativo em preparação"
+theme_type_variation = &"Muted"
+

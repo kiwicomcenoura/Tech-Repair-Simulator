@@ -1,0 +1,41 @@
+[gd_scene format=3 uid="uid://d1x0yp7r31x8t"]
+
+[ext_resource type="PackedScene" path="res://Scenes/Player/Player.tscn" id="Player"]
+[ext_resource type="PackedScene" path="res://Scenes/Workshop/WorkshopRoom.tscn" id="Room"]
+[ext_resource type="PackedScene" path="res://Scenes/Workshop/RepairBench.tscn" id="RepairBench"]
+[ext_resource type="PackedScene" path="res://Scenes/Workshop/WorkComputer.tscn" id="WorkComputer"]
+[ext_resource type="PackedScene" path="res://Scenes/Workshop/ServiceCounter.tscn" id="ServiceCounter"]
+[ext_resource type="PackedScene" path="res://Scenes/Workshop/Shelf.tscn" id="Shelf"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/MaintenanceBenchUI.tscn" id="MaintenanceUI"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/PersonalComputerUI.tscn" id="PersonalUI"]
+[ext_resource type="Script" path="res://Scripts/Gameplay/physical_workshop.gd" id="PhysicalWorkshop"]
+
+[node name="World" type="Node2D" unique_id=1803712987]
+
+[node name="WorkshopRoom" parent="." instance=ExtResource("Room")]
+
+[node name="Actors" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="RepairBench" parent="Actors" instance=ExtResource("RepairBench")]
+position = Vector2(130, -125)
+
+[node name="WorkComputer" parent="Actors" instance=ExtResource("WorkComputer")]
+position = Vector2(380, 15)
+
+[node name="ServiceCounter" parent="Actors" instance=ExtResource("ServiceCounter")]
+position = Vector2(15, 212.5)
+
+[node name="Shelf" parent="Actors" instance=ExtResource("Shelf")]
+position = Vector2(-330, -20)
+
+[node name="Player" parent="Actors" unique_id=982637779 instance=ExtResource("Player")]
+
+[node name="MaintenanceBenchUI" parent="." instance=ExtResource("MaintenanceUI")]
+
+[node name="PersonalComputerUI" parent="." instance=ExtResource("PersonalUI")]
+
+[node name="PhysicalWorkshop" type="Node" parent="."]
+process_mode = 3
+script = ExtResource("PhysicalWorkshop")
+

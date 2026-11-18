@@ -1,0 +1,105 @@
+name: Publicar versão Windows
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versão estável no formato vMAJOR.MINOR.PATCH'
+        required: true
+        type: string
+      notes:
+        description: 'Notas da versão'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tech-repair-windows-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Validar versão
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          if ($env:RELEASE_VERSION -cnotmatch '\Av(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\z') {
+            throw 'Use uma versão estável como v0.1.0.'
+          }
+
+      - name: Obter Godot 4.7.2 e template Windows x64
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $engine = Join-Path $env:RUNNER_TEMP 'godot-engine'
+          New-Item -ItemType Directory -Path $engine | Out-Null
+          $editorZip = 'Godot_v4.7.2-stable_win64.exe.zip'
+          $templateZip = 'Godot_v4.7.2-stable_export_templates.tpz'
+          gh release download 4.7.2-stable --repo godotengine/godot-builds --dir $engine --pattern $editorZip --pattern $templateZip
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao baixar o Godot oficial.' }
+          $hashes = @{
+            $editorZip = '731980f9608d61333e5baf54a2ef17210acc7a538446c0cb9969f002aca1e953'
+            $templateZip = 'f298490b8d44d934be425a5a65a51bf15f422428b229a06a6e11d9ffea248011'
+          }
+          foreach ($asset in $hashes.Keys) {
+            if ((Get-FileHash -LiteralPath (Join-Path $engine $asset) -Algorithm SHA256).Hash -ne $hashes[$asset]) {
+              throw "SHA-256 do download oficial inválido: $asset"
+            }
+          }
+          Expand-Archive -LiteralPath (Join-Path $engine $editorZip) -DestinationPath $engine
+          $console = Get-ChildItem -LiteralPath $engine -Recurse -File -Filter '*_console.exe' | Select-Object -First 1
+          if (-not $console) { throw 'Executável de console do Godot não encontrado.' }
+          $templateDir = Join-Path $env:APPDATA 'Godot/export_templates/4.7.2.stable'
+          New-Item -ItemType Directory -Path $templateDir -Force | Out-Null
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archive = [IO.Compression.ZipFile]::OpenRead((Join-Path $engine $templateZip))
+          try {
+            $entry = $archive.GetEntry('templates/windows_release_x86_64.exe')
+            if (-not $entry) { throw 'Template de release Windows x64 não encontrado.' }
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path $templateDir $entry.Name), $true)
+          } finally {
+            $archive.Dispose()
+          }
+          "GODOT_CONSOLE=$($console.FullName)" >> $env:GITHUB_ENV
+
+      - name: Exportar jogo e launcher
+        run: |
+          Set-Content -LiteralPath 'Launcher/repository.cfg' -Encoding utf8 -Value '[github]', "repository=`"$env:GITHUB_REPOSITORY`""
+          ./Launcher/Build-Windows.ps1 -GodotConsole $env:GODOT_CONSOLE -OutputDirectory (Join-Path $env:RUNNER_TEMP 'tech-repair-release')
+
+      - name: Anexar arquivos e publicar release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_NOTES: ${{ inputs.notes }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:RELEASE_VERSION
+          $notesPath = Join-Path $env:RUNNER_TEMP 'tech-repair-release-notes.md'
+          $notes = $env:RELEASE_NOTES
+          if ([string]::IsNullOrWhiteSpace($notes)) { $notes = "Tech Repair Simulator $tag para Windows x64." }
+          Set-Content -LiteralPath $notesPath -Encoding utf8 -Value $notes
+          $output = Join-Path $env:RUNNER_TEMP 'tech-repair-release'
+          $files = @(
+            (Join-Path $output 'Tech-Repair-Simulator-Windows-x64.zip'),
+            (Join-Path $output 'Tech-Repair-Simulator-Windows-x64.zip.sha256'),
+            (Join-Path $output 'Tech-Repair-Simulator-Launcher-Windows-x64.exe')
+          )
+          gh release create $tag @files --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --draft --title "Tech Repair Simulator $tag" --notes-file $notesPath
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar o rascunho ou anexar arquivos.' }
+          gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar. Confira o rascunho antes de tentar novamente.' }

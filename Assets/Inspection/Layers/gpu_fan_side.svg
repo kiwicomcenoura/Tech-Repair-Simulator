@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="164" viewBox="0 0 400 164">
+  <defs>
+    <linearGradient id="metal" x2="0" y2="1">
+      <stop stop-color="#626a70"/><stop offset=".24" stop-color="#3a4148"/>
+      <stop offset=".7" stop-color="#242a30"/><stop offset="1" stop-color="#4d555c"/>
+    </linearGradient>
+    <linearGradient id="fan" x2=".6" y2="1">
+      <stop stop-color="#69737a"/><stop offset=".52" stop-color="#383f45"/><stop offset="1" stop-color="#24292d"/>
+    </linearGradient>
+  </defs>
+  <path d="M4 14h17v122H9v20H4zm5 11v93h6V25z" fill="#9ba0a1" fill-rule="evenodd"/>
+  <path d="M15 20h364l13 14v85l-17 18H15z" fill="#212b28" stroke="#111719" stroke-width="4"/>
+  <path d="M43 131h42v15H43zm52 0h95v15H95z" fill="#a7804c"/>
+  <path d="M49 135v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m22-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10m6-10v10" stroke="#e3bc76" stroke-width="2"/>
+  <path d="M21 30l17-13h115l16 8h50l17-8h136l18 16v85l-18 17H244l-21-10h-56l-19 10H37l-16-14z" fill="url(#metal)" stroke="#171c20" stroke-width="4"/>
+  <path d="M26 32l14-11h108l16 8h60l16-8h130l14 12M27 115l13 14h102l22-9h63l22 9h119l15-13" fill="none" stroke="#78808a" stroke-width="2"/>
+  <path d="M48 24h81l-10 5H49zm217 0h77l8 5h-74zm-208 99h79l-11 5H62zm214 0h72l-5 5h-80z" fill="#ac8456"/>
+  <path d="M24 49h10v53H24zm353-3h10v58h-10z" fill="#141b1f"/>
+  <circle cx="103" cy="76" r="50" fill="#121619" stroke="#171c20" stroke-width="5"/>
+  <circle cx="305" cy="76" r="50" fill="#121619" stroke="#171c20" stroke-width="5"/>
+  <g transform="translate(103 76)" fill="url(#fan)">
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(51)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(103)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(154)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(206)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(257)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(309)"/>
+  </g>
+  <g transform="translate(305 76)" fill="url(#fan)">
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(51)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(103)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(154)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(206)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(257)"/>
+    <path d="M7-8C3-29 15-38 31-32 46-22 39-11 13 3z" transform="rotate(309)"/>
+  </g>
+  <circle cx="103" cy="76" r="15" fill="#31393c" stroke="#8b8072" stroke-width="2"/>
+  <circle cx="305" cy="76" r="15" fill="#31393c" stroke="#8b8072" stroke-width="2"/>
+  <path d="M94 76l9-7 9 7-9 7zm202 0l9-7 9 7-9 7z" fill="#b99769"/>
+  <path d="M171 55h66v42h-66z" fill="#252b30"/>
+  <path d="M182 65h44m-44 7h44m-44 7h44m-44 7h44" stroke="#4c565d" stroke-width="3"/>
+</svg>

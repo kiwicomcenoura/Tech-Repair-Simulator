@@ -1,0 +1,45 @@
+# Godot 4 editor caches and generated Android project
+.godot/
+/android/
+/Launcher/android/
+
+# Local exports and build directories
+/Builds/
+/Launcher/Builds/
+/dist/
+/Launcher/dist/
+*.exe
+*.pck
+*.zip
+*.tpz
+
+# Temporary files, backups and local player data
+/Backups/
+*.tmp
+*.bak
+*.corrupt
+*.part
+*.log
+*~
+workshop_save*.json
+preferences.cfg
+
+# Local secrets and export credentials
+.env
+.env.*
+!.env.example
+.aws/
+export_credentials.cfg
+credentials.json
+secrets.json
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+
+# Machine and editor metadata
+.vscode/
+Thumbs.db
+.DS_Store

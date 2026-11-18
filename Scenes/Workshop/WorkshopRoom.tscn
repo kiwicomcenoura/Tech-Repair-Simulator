@@ -1,0 +1,1631 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://Assets/Workshop/floor_grain.png" id="1_floor"]
+
+[node name="WorkshopRoom" type="Node2D"]
+
+[node name="Surface98" type="Polygon2D" parent="."]
+z_index = -20
+polygon = PackedVector2Array(-2400, -1800, 2400, -1800, 2400, 1800, -2400, 1800)
+color = Color(0.07, 0.1, 0.14, 1)
+
+[node name="Surface99" type="Polygon2D" parent="."]
+z_index = -10
+polygon = PackedVector2Array(0, -280, 560, 0, 0, 280, -560, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface100" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -279, 38, -260, 0, -241, -38, -260)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface101" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -259, -2, -240, -40, -221, -78, -240)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface102" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, -239, -42, -220, -80, -201, -118, -220)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface103" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, -219, -82, -200, -120, -181, -158, -200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface104" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, -199, -122, -180, -160, -161, -198, -180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface105" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, -179, -162, -160, -200, -141, -238, -160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface106" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, -159, -202, -140, -240, -121, -278, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface107" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, -139, -242, -120, -280, -101, -318, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface108" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-320, -119, -282, -100, -320, -81, -358, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface109" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-360, -99, -322, -80, -360, -61, -398, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface110" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-400, -79, -362, -60, -400, -41, -438, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface111" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-440, -59, -402, -40, -440, -21, -478, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface112" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-480, -39, -442, -20, -480, -1, -518, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface113" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-520, -19, -482, 0, -520, 19, -558, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface114" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -259, 78, -240, 40, -221, 2, -240)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface115" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -239, 38, -220, 0, -201, -38, -220)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface116" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -219, -2, -200, -40, -181, -78, -200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface117" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, -199, -42, -180, -80, -161, -118, -180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface118" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, -179, -82, -160, -120, -141, -158, -160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface119" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, -159, -122, -140, -160, -121, -198, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface120" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, -139, -162, -120, -200, -101, -238, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface121" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, -119, -202, -100, -240, -81, -278, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface122" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, -99, -242, -80, -280, -61, -318, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface123" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-320, -79, -282, -60, -320, -41, -358, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface124" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-360, -59, -322, -40, -360, -21, -398, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface125" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-400, -39, -362, -20, -400, -1, -438, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface126" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-440, -19, -402, 0, -440, 19, -478, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface127" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-480, 1, -442, 20, -480, 39, -518, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface128" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, -239, 118, -220, 80, -201, 42, -220)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface129" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -219, 78, -200, 40, -181, 2, -200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface130" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -199, 38, -180, 0, -161, -38, -180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface131" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -179, -2, -160, -40, -141, -78, -160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface132" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, -159, -42, -140, -80, -121, -118, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface133" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, -139, -82, -120, -120, -101, -158, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface134" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, -119, -122, -100, -160, -81, -198, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface135" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, -99, -162, -80, -200, -61, -238, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface136" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, -79, -202, -60, -240, -41, -278, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface137" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, -59, -242, -40, -280, -21, -318, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface138" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-320, -39, -282, -20, -320, -1, -358, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface139" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-360, -19, -322, 0, -360, 19, -398, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface140" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-400, 1, -362, 20, -400, 39, -438, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface141" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-440, 21, -402, 40, -440, 59, -478, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface142" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, -219, 158, -200, 120, -181, 82, -200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface143" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, -199, 118, -180, 80, -161, 42, -180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface144" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -179, 78, -160, 40, -141, 2, -160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface145" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -159, 38, -140, 0, -121, -38, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface146" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -139, -2, -120, -40, -101, -78, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface147" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, -119, -42, -100, -80, -81, -118, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface148" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, -99, -82, -80, -120, -61, -158, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface149" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, -79, -122, -60, -160, -41, -198, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface150" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, -59, -162, -40, -200, -21, -238, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface151" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, -39, -202, -20, -240, -1, -278, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface152" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, -19, -242, 0, -280, 19, -318, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface153" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-320, 1, -282, 20, -320, 39, -358, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface154" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-360, 21, -322, 40, -360, 59, -398, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface155" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-400, 41, -362, 60, -400, 79, -438, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface156" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, -199, 198, -180, 160, -161, 122, -180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface157" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, -179, 158, -160, 120, -141, 82, -160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface158" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, -159, 118, -140, 80, -121, 42, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface159" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -139, 78, -120, 40, -101, 2, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface160" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -119, 38, -100, 0, -81, -38, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface161" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -99, -2, -80, -40, -61, -78, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface162" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, -79, -42, -60, -80, -41, -118, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface163" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, -59, -82, -40, -120, -21, -158, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface164" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, -39, -122, -20, -160, -1, -198, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface165" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, -19, -162, 0, -200, 19, -238, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface166" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, 1, -202, 20, -240, 39, -278, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface167" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, 21, -242, 40, -280, 59, -318, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface168" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-320, 41, -282, 60, -320, 79, -358, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface169" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-360, 61, -322, 80, -360, 99, -398, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface170" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, -179, 238, -160, 200, -141, 162, -160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface171" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, -159, 198, -140, 160, -121, 122, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface172" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, -139, 158, -120, 120, -101, 82, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface173" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, -119, 118, -100, 80, -81, 42, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface174" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -99, 78, -80, 40, -61, 2, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface175" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -79, 38, -60, 0, -41, -38, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface176" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -59, -2, -40, -40, -21, -78, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface177" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, -39, -42, -20, -80, -1, -118, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface178" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, -19, -82, 0, -120, 19, -158, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface179" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, 1, -122, 20, -160, 39, -198, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface180" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, 21, -162, 40, -200, 59, -238, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface181" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, 41, -202, 60, -240, 79, -278, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface182" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, 61, -242, 80, -280, 99, -318, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface183" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-320, 81, -282, 100, -320, 119, -358, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface184" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, -159, 278, -140, 240, -121, 202, -140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface185" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, -139, 238, -120, 200, -101, 162, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface186" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, -119, 198, -100, 160, -81, 122, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface187" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, -99, 158, -80, 120, -61, 82, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface188" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, -79, 118, -60, 80, -41, 42, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface189" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -59, 78, -40, 40, -21, 2, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface190" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, -39, 38, -20, 0, -1, -38, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface191" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, -19, -2, 0, -40, 19, -78, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface192" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, 1, -42, 20, -80, 39, -118, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface193" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, 21, -82, 40, -120, 59, -158, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface194" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, 41, -122, 60, -160, 79, -198, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface195" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, 61, -162, 80, -200, 99, -238, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface196" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, 81, -202, 100, -240, 119, -278, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface197" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-280, 101, -242, 120, -280, 139, -318, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface198" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, -139, 318, -120, 280, -101, 242, -120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface199" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, -119, 278, -100, 240, -81, 202, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface200" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, -99, 238, -80, 200, -61, 162, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface201" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, -79, 198, -60, 160, -41, 122, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface202" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, -59, 158, -40, 120, -21, 82, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface203" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, -39, 118, -20, 80, -1, 42, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface204" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, -19, 78, 0, 40, 19, 2, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface205" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 1, 38, 20, 0, 39, -38, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface206" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, 21, -2, 40, -40, 59, -78, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface207" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, 41, -42, 60, -80, 79, -118, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface208" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, 61, -82, 80, -120, 99, -158, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface209" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, 81, -122, 100, -160, 119, -198, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface210" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, 101, -162, 120, -200, 139, -238, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface211" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-240, 121, -202, 140, -240, 159, -278, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface212" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(320, -119, 358, -100, 320, -81, 282, -100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface213" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, -99, 318, -80, 280, -61, 242, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface214" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, -79, 278, -60, 240, -41, 202, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface215" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, -59, 238, -40, 200, -21, 162, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface216" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, -39, 198, -20, 160, -1, 122, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface217" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, -19, 158, 0, 120, 19, 82, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface218" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, 1, 118, 20, 80, 39, 42, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface219" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, 21, 78, 40, 40, 59, 2, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface220" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 41, 38, 60, 0, 79, -38, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface221" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, 61, -2, 80, -40, 99, -78, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface222" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, 81, -42, 100, -80, 119, -118, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface223" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, 101, -82, 120, -120, 139, -158, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface224" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, 121, -122, 140, -160, 159, -198, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface225" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-200, 141, -162, 160, -200, 179, -238, 160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface226" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(360, -99, 398, -80, 360, -61, 322, -80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface227" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(320, -79, 358, -60, 320, -41, 282, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface228" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, -59, 318, -40, 280, -21, 242, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface229" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, -39, 278, -20, 240, -1, 202, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface230" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, -19, 238, 0, 200, 19, 162, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface231" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, 1, 198, 20, 160, 39, 122, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface232" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, 21, 158, 40, 120, 59, 82, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface233" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, 41, 118, 60, 80, 79, 42, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface234" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, 61, 78, 80, 40, 99, 2, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface235" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 81, 38, 100, 0, 119, -38, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface236" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, 101, -2, 120, -40, 139, -78, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface237" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, 121, -42, 140, -80, 159, -118, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface238" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, 141, -82, 160, -120, 179, -158, 160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface239" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-160, 161, -122, 180, -160, 199, -198, 180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface240" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(400, -79, 438, -60, 400, -41, 362, -60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface241" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(360, -59, 398, -40, 360, -21, 322, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface242" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(320, -39, 358, -20, 320, -1, 282, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface243" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, -19, 318, 0, 280, 19, 242, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface244" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, 1, 278, 20, 240, 39, 202, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface245" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, 21, 238, 40, 200, 59, 162, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface246" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, 41, 198, 60, 160, 79, 122, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface247" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, 61, 158, 80, 120, 99, 82, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface248" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, 81, 118, 100, 80, 119, 42, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface249" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, 101, 78, 120, 40, 139, 2, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface250" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 121, 38, 140, 0, 159, -38, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface251" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, 141, -2, 160, -40, 179, -78, 160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface252" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, 161, -42, 180, -80, 199, -118, 180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface253" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-120, 181, -82, 200, -120, 219, -158, 200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface254" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(440, -59, 478, -40, 440, -21, 402, -40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface255" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(400, -39, 438, -20, 400, -1, 362, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface256" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(360, -19, 398, 0, 360, 19, 322, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface257" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(320, 1, 358, 20, 320, 39, 282, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface258" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, 21, 318, 40, 280, 59, 242, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface259" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, 41, 278, 60, 240, 79, 202, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface260" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, 61, 238, 80, 200, 99, 162, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface261" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, 81, 198, 100, 160, 119, 122, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface262" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, 101, 158, 120, 120, 139, 82, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface263" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, 121, 118, 140, 80, 159, 42, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface264" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, 141, 78, 160, 40, 179, 2, 160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface265" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 161, 38, 180, 0, 199, -38, 180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface266" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, 181, -2, 200, -40, 219, -78, 200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface267" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-80, 201, -42, 220, -80, 239, -118, 220)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface268" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(480, -39, 518, -20, 480, -1, 442, -20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface269" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(440, -19, 478, 0, 440, 19, 402, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface270" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(400, 1, 438, 20, 400, 39, 362, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface271" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(360, 21, 398, 40, 360, 59, 322, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface272" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(320, 41, 358, 60, 320, 79, 282, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface273" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, 61, 318, 80, 280, 99, 242, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface274" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, 81, 278, 100, 240, 119, 202, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface275" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, 101, 238, 120, 200, 139, 162, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface276" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, 121, 198, 140, 160, 159, 122, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface277" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, 141, 158, 160, 120, 179, 82, 160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface278" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, 161, 118, 180, 80, 199, 42, 180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface279" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, 181, 78, 200, 40, 219, 2, 200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface280" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 201, 38, 220, 0, 239, -38, 220)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface281" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(-40, 221, -2, 240, -40, 259, -78, 240)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface282" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(520, -19, 558, 0, 520, 19, 482, 0)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface283" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(480, 1, 518, 20, 480, 39, 442, 20)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface284" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(440, 21, 478, 40, 440, 59, 402, 40)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface285" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(400, 41, 438, 60, 400, 79, 362, 60)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface286" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(360, 61, 398, 80, 360, 99, 322, 80)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface287" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(320, 81, 358, 100, 320, 119, 282, 100)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface288" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(280, 101, 318, 120, 280, 139, 242, 120)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface289" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(240, 121, 278, 140, 240, 159, 202, 140)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface290" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(200, 141, 238, 160, 200, 179, 162, 160)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface291" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(160, 161, 198, 180, 160, 199, 122, 180)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface292" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(120, 181, 158, 200, 120, 219, 82, 200)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface293" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(80, 201, 118, 220, 80, 239, 42, 220)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface294" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(40, 221, 78, 240, 40, 259, 2, 240)
+color = Color(0.22, 0.26, 0.31, 1)
+
+[node name="Surface295" type="Polygon2D" parent="."]
+z_index = -9
+texture = ExtResource("1_floor")
+texture_repeat = 2
+antialiased = true
+polygon = PackedVector2Array(0, 241, 38, 260, 0, 279, -38, 260)
+color = Color(0.25, 0.3, 0.35, 1)
+
+[node name="Surface296" type="Polygon2D" parent="."]
+z_index = -2
+polygon = PackedVector2Array(0, -280, 560, 0, 560, -80, 0, -360)
+color = Color(0.15, 0.2, 0.28, 1)
+
+[node name="Surface297" type="Polygon2D" parent="."]
+z_index = -2
+polygon = PackedVector2Array(0, -280, -560, 0, -560, -80, 0, -360)
+color = Color(0.13, 0.18, 0.24, 1)
+
+[node name="Surface298" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(0, -288, 560, -8, 560, -13, 0, -293)
+color = Color(0.15, 0.29, 0.44, 1)
+
+[node name="Surface299" type="Polygon2D" parent="."]
+z_index = -1
+polygon = PackedVector2Array(0, -288, -560, -8, -560, -13, 0, -293)
+color = Color(0.15, 0.29, 0.44, 1)
+
+[node name="Surface300" type="Polygon2D" parent="."]
+z_index = 2
+polygon = PackedVector2Array(560, 0, 0, 280, 0, 274, 560, -6)
+color = Color(0.55, 0.6, 0.67, 1)
+
+[node name="Surface301" type="Polygon2D" parent="."]
+z_index = 2
+polygon = PackedVector2Array(-560, 0, 0, 280, 0, 274, -560, -6)
+color = Color(0.55, 0.6, 0.67, 1)
+
+[node name="WallCollisions" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Solid302" type="CollisionPolygon2D" parent="WallCollisions"]
+polygon = PackedVector2Array(0, -292, 584, 0, 572, 6, -12, -286)
+
+[node name="Solid303" type="CollisionPolygon2D" parent="WallCollisions"]
+polygon = PackedVector2Array(-12, -286, 0, -280, -572, 6, -584, 0)
+
+[node name="Solid304" type="CollisionPolygon2D" parent="WallCollisions"]
+polygon = PackedVector2Array(560, 0, 572, 6, 0, 292, -12, 286)
+
+[node name="Solid305" type="CollisionPolygon2D" parent="WallCollisions"]
+polygon = PackedVector2Array(-560, 0, 0, 280, -12, 286, -572, 6)
+
+
