@@ -1,0 +1,63 @@
+name: Reenviar anúncio Discord
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versão da release já publicada'
+        required: true
+        default: 'v0.1.2'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Consultar release publicada
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:RELEASE_VERSION
+          if ($tag -cnotmatch '\Av(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})\z') {
+            throw 'Use uma versão estável como v0.1.2.'
+          }
+
+          $json = gh release view $tag --repo $env:GITHUB_REPOSITORY --json 'tagName,isDraft,isPrerelease,publishedAt,url,body'
+          if ($LASTEXITCODE -ne 0) { throw "Não foi possível consultar a release $tag." }
+          $release = ($json -join "`n") | ConvertFrom-Json
+          if ($release.tagName -cne $tag -or $release.isDraft -ne $false -or $release.isPrerelease -ne $false -or -not $release.publishedAt) {
+            throw "A versão $tag precisa ser uma release estável já publicada."
+          }
+
+          $releaseUrl = "$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$tag"
+          if ($release.url -ne $releaseUrl) { throw "A URL retornada para $tag não corresponde à release do repositório." }
+          $notes = $release.body
+          if ([string]::IsNullOrWhiteSpace($notes)) { $notes = "Tech Repair Simulator $tag para Windows x64." }
+          Set-Content -LiteralPath (Join-Path $env:RUNNER_TEMP 'tech-repair-discord-notes.md') -Encoding utf8 -NoNewline -Value $notes
+          "release_url=$releaseUrl" >> $env:GITHUB_OUTPUT
+
+      - name: Reenviar anúncio ao Discord
+        if: ${{ success() && steps.release.outputs.release_url != '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RELEASE_URL: ${{ steps.release.outputs.release_url }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DISCORD_WEBHOOK_URL)) {
+            throw 'Configure o secret DISCORD_WEBHOOK_URL para reenviar o anúncio.'
+          }
+          ./.github/scripts/Send-DiscordRelease.ps1 -Version $env:RELEASE_VERSION -ReleaseUrl $env:RELEASE_URL `
+            -NotesPath (Join-Path $env:RUNNER_TEMP 'tech-repair-discord-notes.md')
