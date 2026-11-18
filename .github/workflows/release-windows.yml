@@ -82,6 +82,7 @@ jobs:
           ./Launcher/Build-Windows.ps1 -GodotConsole $env:GODOT_CONSOLE -OutputDirectory (Join-Path $env:RUNNER_TEMP 'tech-repair-release')
 
       - name: Anexar arquivos e publicar release
+        id: publish
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_VERSION: ${{ inputs.version }}
@@ -89,10 +90,14 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $tag = $env:RELEASE_VERSION
+          $existingTags = gh api --paginate "repos/$env:GITHUB_REPOSITORY/releases?per_page=100" --jq '.[].tag_name'
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao consultar as releases existentes.' }
+          if ($existingTags -ccontains $tag) { throw "Já existe uma release ou rascunho para $tag." }
+
           $notesPath = Join-Path $env:RUNNER_TEMP 'tech-repair-release-notes.md'
           $notes = $env:RELEASE_NOTES
           if ([string]::IsNullOrWhiteSpace($notes)) { $notes = "Tech Repair Simulator $tag para Windows x64." }
-          Set-Content -LiteralPath $notesPath -Encoding utf8 -Value $notes
+          Set-Content -LiteralPath $notesPath -Encoding utf8 -NoNewline -Value $notes
           $output = Join-Path $env:RUNNER_TEMP 'tech-repair-release'
           $files = @(
             (Join-Path $output 'Tech-Repair-Simulator-Windows-x64.zip'),
@@ -103,3 +108,15 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar o rascunho ou anexar arquivos.' }
           gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar. Confira o rascunho antes de tentar novamente.' }
+          "release_url=$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$tag" >> $env:GITHUB_OUTPUT
+
+      - name: Anunciar release no Discord
+        if: ${{ success() && steps.publish.outputs.release_url != '' }}
+        continue-on-error: true
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_URL: ${{ steps.publish.outputs.release_url }}
+        run: |
+          ./.github/scripts/Send-DiscordRelease.ps1 -Version $env:RELEASE_VERSION -ReleaseUrl $env:RELEASE_URL `
+            -NotesPath (Join-Path $env:RUNNER_TEMP 'tech-repair-release-notes.md')
