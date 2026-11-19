@@ -11,6 +11,7 @@ extends Resource
 @export var condition: String = "Não avaliada"
 @export var maintenance_state: String = "Aguardando manutenção"
 @export var inspection_profile: StringName = &""
+@export var case_key: String = ""
 
 # A session belongs to the real equipment, surviving removal from the bench.
 # It is created lazily, not as a default computer in the UI.

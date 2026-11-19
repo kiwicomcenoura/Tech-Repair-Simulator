@@ -12,8 +12,10 @@ if ($LASTEXITCODE -ne 0 -or $version -notmatch '^4\.7\.2\.stable\.') {
 
 $game = Split-Path -Parent $PSScriptRoot
 $output = (New-Item -ItemType Directory -Force -Path $OutputDirectory).FullName
-$gameExe = Join-Path $output 'Tech Repair Simulator.exe'
-$launcherExe = Join-Path $output 'Tech-Repair-Simulator-Launcher-Windows-x64.exe'
+$exeName = 'Tech Repair Simulator.exe'
+$gameOutput = (New-Item -ItemType Directory -Force -Path (Join-Path $output 'game')).FullName
+$gameExe = Join-Path $gameOutput $exeName
+$launcherExe = Join-Path $output $exeName
 $gameZip = Join-Path $output 'Tech-Repair-Simulator-Windows-x64.zip'
 
 function Export-Windows([string]$Project, [string]$Destination) {

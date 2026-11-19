@@ -73,12 +73,14 @@ func run() -> void:
 	check(not equipment.get_node("EquipmentIllustration").visible, "No cabinet illustration in empty equipment panel")
 	var overview: Node = bench_ui.get_node("%BenchTabs").get_tab_control(0).get_node("Content")
 	check(not overview.get_node("EquipmentPreview/Content/Blueprint").visible, "No default PC preview")
-	for name in ["Inspect", "StartDiagnostic", "Replace", "Finish"]:
+	for name in ["StartDiagnostic", "Replace", "Finish"]:
 		check(bench_ui.find_child(name, true, false).disabled, "Disabled empty action: " + name)
-	check(not bench_ui.open_inspection(), "Direct inspection API rejects empty bench")
+	check(not bench_ui.find_child("Inspect", true, false).disabled, "Empty inspection provides the cabinet picker")
 	bench_ui.find_child("Inspect", true, false).pressed.emit()
-	check(not bench_ui.inspection.visible, "Bypassing disabled button cannot open inspection")
+	check(bench_ui.inspection.visible and bench_ui.inspection.session == null, "Opening empty inspection creates no equipment session")
+	check(bench_ui.inspection._case_picker.is_visible_in_tree() and bench_ui.inspection._case_picker.disabled, "Empty picker explains how to get a cabinet")
 	check(not bench_ui.inspection.get_node("%DesktopCanvas").visible, "No screws/components drawn while empty")
+	bench_ui.exit_inspection()
 	for code in ["CPU", "GPU", "RAM", "MB", "SSD", "PSU", "FAN"]:
 		check(bench_ui.get_node("%BenchTabs").get_tab_control(2).get_node("Content/ComponentSlots/Slot" + code + "/Row/Labels/Empty").text == "Slot vazio", "No invented component: " + code)
 	await capture("empty")

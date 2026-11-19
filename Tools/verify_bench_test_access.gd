@@ -52,7 +52,7 @@ func run() -> void:
 	ui.get_node("%BenchTabs").current_tab = 3
 	await frames()
 	check(ui.find_child("RunPOST", true, false).disabled and ui.find_child("RunRAMTest", true, false).disabled, "Empty bench tests disabled")
-	check(not ui.open_inspection(), "No phantom equipment introduced")
+	check(ui.open_inspection() and ui.inspection.session == null and not ui.inspection.canvas.visible, "Empty inspection shows the picker without introducing equipment")
 	ui.close_bench()
 	var pc_id := ""
 	for record in model.state.items.values():

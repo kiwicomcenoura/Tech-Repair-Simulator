@@ -6,6 +6,7 @@ var heading_text := "CONFIRMAR COMPRA / TECHMARKET"
 var dialog_text := ""
 var _yes: Button
 var _no: Button
+var _heading: Label
 var _message: Label
 var _finish_row: HBoxContainer
 var _finish: OptionButton
@@ -39,11 +40,11 @@ func _ready() -> void:
 	var layout := VBoxContainer.new()
 	layout.add_theme_constant_override("separation",20)
 	panel.add_child(layout)
-	var label := Label.new()
-	label.text = heading_text
-	label.add_theme_font_size_override("font_size",14)
-	label.add_theme_color_override("font_color",Color("72d5e6"))
-	layout.add_child(label)
+	_heading = Label.new()
+	_heading.text = heading_text
+	_heading.add_theme_font_size_override("font_size",14)
+	_heading.add_theme_color_override("font_color",Color("72d5e6"))
+	layout.add_child(_heading)
 	_message = Label.new()
 	_message.custom_minimum_size.x = 500
 	_message.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -102,6 +103,7 @@ func selected_finish() -> String:
 	return _finish.get_item_text(_finish.selected) if _finish.selected > 0 else ""
 
 func popup_centered(_size: Vector2i = Vector2i.ZERO) -> void:
+	_heading.text = heading_text
 	_message.text = dialog_text
 	show()
 	_no.grab_focus()

@@ -7,13 +7,16 @@ const CASE_ART := preload("res://Assets/Inspection/desktop_open.png")
 const LID_ART := preload("res://Assets/Inspection/desktop_lid.png")
 const EDITABLE_ART := preload("res://Assets/Physical/desktop_editable.png")
 const RAM_ART := preload("res://Assets/Physical/ram_module.png")
+const Cases := preload("res://Scripts/Equipment/case_catalog.gd")
 const PartVisuals := preload("res://Scripts/UI/part_visuals.gd")
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const LATCHES := [Vector2(149, 45), Vector2(149, 103)]
 const RAM_SLOT := Rect2(144, 43, 10, 64)
 const RAM_INSTALLED := Rect2(145, 48, 8, 52)
 const RAM_SLOT_SPACING := Vector2(20, 0)
-const MOUNT_RECTS := {"motherboard": Rect2(42,38,145,115), "cooling": Rect2(80,55,49,51), "cpu": Rect2(91,66,27,27), "gpu": Rect2(32,119,173,30), "psu": Rect2(41,160,99,34), "storage": Rect2(211,103,29,40)}
+const BOARD_AREA := Rect2(Vector2(42, 38), PartVisuals.BOARD_ART_SIZE)
+const CPU_SEAT := Rect2(BOARD_AREA.position + PartVisuals.AMDERA_CPU_SEAT.position, PartVisuals.AMDERA_CPU_SEAT.size)
+const MOUNT_RECTS := {"motherboard": BOARD_AREA, "cooling": Rect2(80,55,49,51), "cpu": CPU_SEAT, "gpu": Rect2(32,119,173,30), "psu": Rect2(41,160,99,34), "storage": Rect2(211,103,29,40)}
 const SCREW_POINTS := {
 	"gpu": [Vector2(33,121),Vector2(33,144)],
 	"psu": [Vector2(28,164),Vector2(37,164),Vector2(28,191),Vector2(37,191)],
@@ -26,10 +29,13 @@ const CONNECTOR_POINTS := {
 	"psu": [Vector2(141,176)],
 	"motherboard": [Vector2(182,83),Vector2(67,41),Vector2(169,151)],
 	"cooling": [Vector2(130,52)],
-	"cpu": [Vector2(122,80)],
+	"cpu": [Vector2(126,80)],
 	"storage": [Vector2(218,143),Vector2(232,143)]
 }
 var layers: Dictionary = {}
+var _case_model: Dictionary = {}
+var _chassis_art: Texture2D
+var _lid_art: Texture2D
 const SCREWS := [Vector2(34, 30), Vector2(246, 30), Vector2(34, 190), Vector2(246, 190)]
 const LID_RECT := Rect2(28, 24, 224, 172)
 const PARKED_LID := Rect2(299, 26, 12, 171)
@@ -66,6 +72,7 @@ func configure(value: RefCounted) -> void:
 		zoom = 1.0
 		pan = Vector2.ZERO
 		_panning = false
+		_configure_case_art(value)
 	if session != null and session.changed.is_connected(_state_changed):
 		session.changed.disconnect(_state_changed)
 	session = value
@@ -73,6 +80,20 @@ func configure(value: RefCounted) -> void:
 		session.changed.connect(_state_changed)
 	_clear_hover()
 	queue_redraw()
+
+
+func _configure_case_art(value: RefCounted) -> void:
+	var key := ""
+	if value != null and is_instance_valid(value.workshop):
+		var pc: Dictionary = value.workshop.ledger.item(value.physical_pc_id)
+		key = pc.get("case_key", "")
+	_case_model = Cases.get_model(key)
+	if _case_model.is_empty():
+		_chassis_art = layers.chassis
+		_lid_art = layers.lid
+	else:
+		_chassis_art = Cases.inspection_texture(key, "chassis")
+		_lid_art = Cases.inspection_texture(key, "lid")
 
 
 func _state_changed() -> void:
@@ -128,11 +149,11 @@ func hit_at(point: Vector2) -> StringName:
 						if point.distance_to(LATCHES[i]+offset) <= 6: return StringName(("ram_latch_" if slot == 0 else "ram2_latch_")+str(i))
 					if Rect2(RAM_SLOT.position+offset,RAM_SLOT.size).has_point(point): return &"ram" if slot == 0 else &"ram2"
 			var selected: Dictionary = session.workshop.ledger.item(session.workshop.selected_part)
-			if not selected.is_empty() and MOUNT_RECTS.has(selected.kind) and not pc.components.has(selected.kind) and MOUNT_RECTS[selected.kind].has_point(point): return StringName(selected.kind)
+			if not selected.is_empty() and MOUNT_RECTS.has(selected.kind) and not pc.components.has(selected.kind) and mount_rect(selected.kind, pc).has_point(point): return StringName(selected.kind)
 			for kind in ["cooling", "cpu", "gpu", "storage", "psu", "motherboard"]:
 				if kind == "cpu" and pc.components.has("cooling"): continue
-				if kind == "cooling" and not pc.components.has("cooling") and MOUNT_RECTS.cpu.has_point(point): continue
-				if MOUNT_RECTS[kind].has_point(point): return StringName(kind)
+				if kind == "cooling" and not pc.components.has("cooling") and mount_rect("cpu", pc).has_point(point): continue
+				if mount_rect(kind, pc).has_point(point): return StringName(kind)
 		for item in PARTS:
 			if item[0] == &"ram" and is_instance_valid(session.workshop): continue
 			if item[2].has_point(point):
@@ -258,7 +279,7 @@ func _draw() -> void:
 	draw_set_transform(art_origin(), 0.0, Vector2.ONE * art_scale())
 	var physical := is_instance_valid(session.workshop)
 	if physical:
-		draw_texture_rect(layers.chassis, Rect2(0,0,320,240), false)
+		draw_texture_rect(_chassis_art, Rect2(0,0,320,240), false)
 		var pc: Dictionary = session.workshop.ledger.item(session.physical_pc_id)
 		for kind in ["motherboard", "cpu", "cooling", "gpu", "psu", "storage"]:
 			if not pc.components.has(kind): continue
@@ -269,11 +290,14 @@ func _draw() -> void:
 			elif kind == "cpu":
 				var cpu: Dictionary = session.workshop.ledger.item(pc.components[kind])
 				if cpu.get("socket") == "AX4": texture = PartVisuals.AMDERA_CPU
-			draw_texture_rect(texture, MOUNT_RECTS[kind], false)
+			draw_texture_rect(texture, mount_rect(kind, pc), false)
+		if session.lid_attached and _case_model.get("glass", false):
+			_draw_cables(pc)
+			_draw_ram_slots(pc, false)
 	else:
 		draw_texture(CASE_ART, Vector2.ZERO)
 	if session.lid_attached:
-		if physical: draw_texture_rect(layers.lid, Rect2(0,0,320,240), false)
+		if physical: draw_texture_rect(_lid_art, Rect2(0,0,320,240), false)
 		else: draw_texture(LID_ART, Vector2.ZERO)
 		if hovered == &"lid" or session.selected == &"lid":
 			draw_rect(LID_RECT, Color("71dded"), false, 1.0)
@@ -286,9 +310,10 @@ func _draw() -> void:
 			_draw_cables(record)
 			for kind in MOUNT_RECTS:
 				if kind == "cpu" and record.components.has("cooling"): continue
-				if hovered == StringName(kind) or session.selected == StringName(kind): draw_rect(MOUNT_RECTS[kind], Color("71dded"), false, 1)
+				var rect := mount_rect(kind, record)
+				if hovered == StringName(kind) or session.selected == StringName(kind): draw_rect(rect, Color("71dded"), false, 1)
 				if not record.components.has(kind):
-					draw_rect(MOUNT_RECTS[kind], Color("284455"), false, 1)
+					draw_rect(rect, Color("284455"), false, 1)
 					continue
 				var mount: Dictionary = session.workshop.ledger.mounts(session.physical_pc_id, kind)
 				for i in range(mount.screws.size()):
@@ -300,8 +325,7 @@ func _draw() -> void:
 					if hovered == StringName("mount:%s:connector:%d" % [kind,i]): draw_rect(Rect2(p - Vector2(4,4),Vector2(8,8)),Color("71dded"),false,1)
 			_draw_ram_slots(record)
 		# The removed lid rests edge-on beside the chassis, and is clickable.
-		draw_rect(PARKED_LID, Color("4b6479"))
-		draw_rect(Rect2(301, 28, 2, 166), Color("8ca5b6"))
+		_draw_parked_lid()
 		if hovered == &"lid" or session.selected == &"lid":
 			draw_rect(PARKED_LID.grow(2), Color("71dded"), false, 1.0)
 		for item in PARTS:
@@ -317,10 +341,35 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 
 
+func _draw_parked_lid() -> void:
+	if _case_model.is_empty():
+		draw_rect(PARKED_LID, Color("4b6479"))
+		draw_rect(Rect2(301, 28, 2, 166), Color("8ca5b6"))
+		return
+	var paint := Color(_case_model.paint)
+	var edge := paint.lightened(0.35)
+	var panel := PARKED_LID.grow(-2)
+	draw_rect(PARKED_LID, paint)
+	draw_rect(Rect2(PARKED_LID.position, Vector2(2, PARKED_LID.size.y)), edge)
+	if _case_model.glass:
+		var glass := Color(_case_model.accent).darkened(0.46)
+		draw_rect(panel, glass)
+		draw_line(panel.position, Vector2(panel.get_center().x, panel.end.y), glass.lightened(0.22), 1.0)
+	else:
+		draw_rect(panel, paint.darkened(0.19))
+
+
+func mount_rect(kind: String, pc: Dictionary) -> Rect2:
+	if kind == "cpu":
+		var board: Dictionary = session.workshop.ledger.item(pc.components.get("motherboard", ""))
+		return PartVisuals.cpu_seat(board.get("board_art", ""), BOARD_AREA)
+	return MOUNT_RECTS[kind]
+
+
 func mount_point(kind: String, index: int, connector: bool) -> Vector2:
 	return CONNECTOR_POINTS[kind][index] if connector else SCREW_POINTS[kind][index]
 
-func _draw_ram_slots(record: Dictionary) -> void:
+func _draw_ram_slots(record: Dictionary, show_highlights: bool = true) -> void:
 	if not record.components.has("motherboard"): return
 	for slot in range(2):
 		var offset := RAM_SLOT_SPACING * slot
@@ -353,8 +402,8 @@ func _draw_ram_slots(record: Dictionary) -> void:
 			draw_line(clip_center+Vector2(-3,-1),clip_center+Vector2(3,-1),Color("d0dcdb"),0.5)
 			draw_rect(Rect2(clip_center+Vector2(-1,-1),Vector2(2,2)),Color("53636a"))
 			var id := StringName(("ram_latch_" if slot == 0 else "ram2_latch_")+str(i))
-			if hovered == id or session.selected == id: draw_rect(Rect2(p-Vector2(7,5),Vector2(14,10)),Color("71dded"),false,1)
-		if hovered == StringName(key) or session.selected == StringName(key): draw_rect(Rect2(RAM_SLOT.position+offset,RAM_SLOT.size),Color("71dded"),false,1)
+			if show_highlights and (hovered == id or session.selected == id): draw_rect(Rect2(p-Vector2(7,5),Vector2(14,10)),Color("71dded"),false,1)
+		if show_highlights and (hovered == StringName(key) or session.selected == StringName(key)): draw_rect(Rect2(RAM_SLOT.position+offset,RAM_SLOT.size),Color("71dded"),false,1)
 
 func _draw_cables(record: Dictionary) -> void:
 	var routes := {

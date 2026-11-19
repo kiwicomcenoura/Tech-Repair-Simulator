@@ -11,6 +11,11 @@ on:
         description: 'Notas da versão'
         required: false
         type: string
+      announce_discord:
+        description: 'Anunciar a release no Discord'
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: read
@@ -99,19 +104,32 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($notes)) { $notes = "Tech Repair Simulator $tag para Windows x64." }
           Set-Content -LiteralPath $notesPath -Encoding utf8 -NoNewline -Value $notes
           $output = Join-Path $env:RUNNER_TEMP 'tech-repair-release'
+          $launcherLabel = 'Tech Repair Simulator.exe'
+          $launcherName = 'Tech.Repair.Simulator.exe'
+          Rename-Item -LiteralPath (Join-Path $output $launcherLabel) -NewName $launcherName
+          $launcherExe = Join-Path $output $launcherName
           $files = @(
             (Join-Path $output 'Tech-Repair-Simulator-Windows-x64.zip'),
             (Join-Path $output 'Tech-Repair-Simulator-Windows-x64.zip.sha256'),
-            (Join-Path $output 'Tech-Repair-Simulator-Launcher-Windows-x64.exe')
+            "${launcherExe}#$launcherLabel"
           )
           gh release create $tag @files --repo $env:GITHUB_REPOSITORY --target $env:GITHUB_SHA --draft --title "Tech Repair Simulator $tag" --notes-file $notesPath
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao criar o rascunho ou anexar arquivos.' }
+
+          $draftJson = gh release view $tag --repo $env:GITHUB_REPOSITORY --json 'isDraft,assets'
+          if ($LASTEXITCODE -ne 0) { throw 'Falha ao consultar os arquivos do rascunho.' }
+          $draft = $draftJson | ConvertFrom-Json
+          $launchers = @($draft.assets | Where-Object { $_.name -ceq $launcherName -and $_.label -ceq $launcherLabel })
+          if (-not $draft.isDraft -or $launchers.Count -ne 1) {
+            throw "O GitHub não confirmou o arquivo '$launcherName' com o rótulo '$launcherLabel' no rascunho."
+          }
+
           gh release edit $tag --repo $env:GITHUB_REPOSITORY --draft=false --latest
           if ($LASTEXITCODE -ne 0) { throw 'Falha ao publicar. Confira o rascunho antes de tentar novamente.' }
           "release_url=$env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/releases/tag/$tag" >> $env:GITHUB_OUTPUT
 
       - name: Anunciar release no Discord
-        if: ${{ success() && steps.publish.outputs.release_url != '' }}
+        if: ${{ inputs.announce_discord && success() && steps.publish.outputs.release_url != '' }}
         continue-on-error: true
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}

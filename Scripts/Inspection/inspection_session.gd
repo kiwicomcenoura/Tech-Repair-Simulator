@@ -121,6 +121,10 @@ func use_screw(index: int) -> bool:
 
 func use_lid() -> bool:
 	if is_instance_valid(workshop) and not workshop.ledger.safe_to_work(physical_pc_id): return false
+	var assembly: bool = _record().has("case_key")
+	if assembly and tool != &"hands":
+		notice.emit("Selecione Mãos (1) para manusear a tampa.", true)
+		return false
 	selected = &"lid"
 	changed.emit()
 	if lid_attached and installed_count() > 0:
@@ -131,6 +135,8 @@ func use_lid() -> bool:
 	changed.emit()
 	if lid_attached:
 		notice.emit("Tampa recolocada, ainda sem fixação. Use a Phillips nos quatro pontos para prender a tampa.", false)
+	elif assembly:
+		notice.emit("Tampa retirada. Selecione uma peça e clique no encaixe.", false)
 	else:
 		notice.emit("Tampa retirada. Selecione Mãos, abra as duas travas da RAM e clique no módulo." if is_instance_valid(workshop) else "Tampa retirada e apoiada ao lado. Passe o mouse sobre as peças para identificá-las.", false)
 	return true

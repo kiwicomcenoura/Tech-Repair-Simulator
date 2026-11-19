@@ -6,7 +6,7 @@ Projeto independente em Godot 4.7.2 para Windows 10/11 x64. Abra `Launcher/proje
 
 Digite `OWNER/REPO` no launcher. A configuração é gravada para a próxima abertura. Para definir um valor inicial em builds locais, preencha `repository` em `Launcher/repository.cfg`. O workflow preenche esse valor com o repositório onde for executado.
 
-O launcher usa releases estáveis públicas, com tags como `v0.1.0`. Cada release deve conter `Tech-Repair-Simulator-Windows-x64.zip` com o executável `Tech Repair Simulator.exe` na raiz. A consulta lê o tamanho e o SHA-256 dos metadados do arquivo no GitHub.
+Em GitHub Releases, clique em **`Tech Repair Simulator.exe`** para baixar o launcher como `Tech.Repair.Simulator.exe`. O launcher usa releases estáveis públicas, com tags como `v0.1.0`, e baixa o jogo pelo pacote `Tech-Repair-Simulator-Windows-x64.zip`. Esse pacote contém o executável do jogo `Tech Repair Simulator.exe` na raiz. A consulta lê o tamanho e o SHA-256 do ZIP nos metadados do GitHub.
 
 O jogo instalado fica em `%LOCALAPPDATA%\Tech Repair Simulator\Launcher\installations`. O launcher usa sua própria pasta de preferências no Godot. O progresso e as opções do jogo continuam em `%APPDATA%\Godot\app_userdata\Tech Repair Simulator`. Uma instalação independente anterior pode continuar usando esses mesmos dados. A primeira execução do launcher baixa sua própria cópia gerenciada.
 
@@ -55,7 +55,7 @@ Instale os templates do Godot 4.7.2 e escolha uma pasta de saída separada dos a
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Launcher\Build-Windows.ps1 -GodotConsole $godot -OutputDirectory (Join-Path $env:TEMP 'tech-repair-launcher-build')
 ```
 
-O script gera o executável do launcher, o executável independente do jogo, o ZIP e o arquivo de verificação SHA-256. Para testar a consulta real pelo launcher exportado, configure um repositório público que já contenha um pacote compatível.
+O script gera o launcher em `Tech Repair Simulator.exe`, na raiz da pasta de saída. O executável independente do jogo fica em `game/Tech Repair Simulator.exe`. O ZIP e o arquivo de verificação SHA-256 ficam junto do launcher. Para testar a consulta real pelo launcher exportado, configure um repositório público que já contenha um pacote compatível.
 
 O parâmetro `-ExecutionPolicy Bypass` vale para o processo PowerShell desse comando.
 
@@ -63,4 +63,4 @@ O parâmetro `-ExecutionPolicy Bypass` vale para o processo PowerShell desse com
 
 Quando o repositório estiver pronto e você autorizar a publicação, coloque o workflow na branch padrão. No GitHub, abra **Actions → Publicar versão Windows → Run workflow**, informe uma tag nova e selecione a branch ou tag de origem.
 
-O único gatilho é `workflow_dispatch`. O workflow usa `GITHUB_TOKEN` para criar o rascunho, anexar os pacotes e publicar a release. Se a execução falhar após criar um rascunho, confira os arquivos e a tag no GitHub antes de repetir a publicação.
+O único gatilho é `workflow_dispatch`. O workflow usa `GITHUB_TOKEN` para criar o rascunho e anexa o launcher como `Tech.Repair.Simulator.exe` com o rótulo `Tech Repair Simulator.exe`. Ele confere o nome do download e o rótulo antes de publicar. O anúncio do Discord aponta para a página da release publicada. Se a execução falhar após criar um rascunho, confira os arquivos e a tag no GitHub antes de repetir a publicação.

@@ -119,11 +119,12 @@ static func t(message: String) -> String:
 	return TranslationServer.translate(message)
 
 
-static func money(amount: int) -> String:
+static func money(amount: float) -> String:
 	var separator := "," if currency == "$" else "."
-	var digits := str(absi(amount))
+	var cents := absi(roundi(amount * 100.0))
+	var digits := str(floori(cents / 100.0))
 	var grouped := ""
 	for i in range(digits.length()):
 		if i > 0 and (digits.length() - i) % 3 == 0: grouped += separator
 		grouped += digits[i]
-	return ("%s%s %s%s00" % ["-" if amount < 0 else "", currency, grouped, "." if currency == "$" else ","])
+	return "%s%s %s%s%02d" % ["-" if amount < 0 else "", currency, grouped, "." if currency == "$" else ",", cents % 100]

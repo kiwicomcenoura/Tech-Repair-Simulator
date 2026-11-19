@@ -16,6 +16,8 @@ var _os_screen: Control
 var _client_desktop: Control
 var _video_effects: Control
 var _memory_test: Button
+var _workshop: Node
+var _case_picker: MenuButton
 @onready var canvas: Control = %DesktopCanvas
 @onready var preview: SubViewportContainer = %DesktopPreview3D
 
@@ -37,6 +39,70 @@ func _ready() -> void:
 	preview.target_activated.connect(func(id: StringName) -> void:
 		if session != null: session.interact_with(id))
 	_build_physical_controls()
+	var area: VBoxContainer = $Workspace/CasePanel/Content
+	var empty_slot := CenterContainer.new()
+	empty_slot.name = "EmptyCaseSlot"
+	empty_slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	area.add_child(empty_slot)
+	area.move_child(empty_slot, canvas.get_index())
+	_case_picker = MenuButton.new()
+	_case_picker.name = "AddCase"
+	_case_picker.text = "Adicionar gabinete"
+	_case_picker.custom_minimum_size = Vector2(218, 42)
+	_case_picker.focus_mode = Control.FOCUS_ALL
+	_case_picker.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	empty_slot.add_child(_case_picker)
+	_case_picker.get_popup().id_pressed.connect(_add_case)
+	refresh_case_picker()
+
+
+func bind_workshop(workshop: Node) -> void:
+	_workshop = workshop
+	workshop.ledger.changed.connect(refresh_case_picker)
+	refresh_case_picker()
+
+
+func refresh_case_picker() -> void:
+	var empty := session == null
+	_case_picker.get_parent().visible = empty
+	$Workspace/ToolsPanel.visible = not empty
+	%PreviewToggle.get_parent().visible = not empty
+	if not empty:
+		close_case_picker()
+		return
+	var popup := _case_picker.get_popup()
+	popup.clear()
+	var available: Array = _workshop.ledger.available_purchased_cases() if is_instance_valid(_workshop) else []
+	for id in available:
+		var record: Dictionary = _workshop.ledger.item(id)
+		var label: String = record.model
+		if record.packaged: label += " · " + Prefs.t("Embalado")
+		popup.add_item(label)
+		popup.set_item_metadata(popup.item_count - 1, id)
+	_case_picker.disabled = available.is_empty()
+	_case_picker.tooltip_text = "Compre um gabinete na Loja de Peças e aguarde a entrega." if available.is_empty() else ""
+	%HoverName.text = "Compre um gabinete na Loja de Peças e aguarde a entrega." if available.is_empty() else "Escolha um gabinete comprado para colocá-lo na bancada."
+
+
+func focus_entry() -> void:
+	if not is_inside_tree(): return
+	if session == null and not _case_picker.disabled: _case_picker.grab_focus()
+	else: %ReturnToBench.grab_focus()
+
+
+func close_case_picker() -> bool:
+	if not _case_picker.get_popup().visible: return false
+	_case_picker.get_popup().hide()
+	return true
+
+
+func _add_case(popup_id: int) -> void:
+	if session != null or not is_instance_valid(_workshop): return
+	var popup := _case_picker.get_popup()
+	var index := popup.get_item_index(popup_id)
+	if index < 0: return
+	if not _workshop.ledger.place_purchased_case(popup.get_item_metadata(index)):
+		_notice(_workshop.last_message, true)
 
 
 func _build_physical_controls() -> void:
@@ -132,6 +198,9 @@ func _refresh_physical() -> void:
 	var pc: Dictionary = model.item(session.physical_pc_id)
 	_client_desktop.set_running(pc.power)
 	_power.text = "Desligar PC" if pc.power else "Ligar PC"
+	var power_reason: String = model.assembly_power_block_reason(session.physical_pc_id)
+	_power.disabled = not power_reason.is_empty()
+	_power.tooltip_text = power_reason
 	_access_os.disabled = not pc.power and not _os_view.visible
 	_access_os.tooltip_text = "Ligue o PC para acessar a tela do cliente." if _access_os.disabled else ""
 	var test_reason: String = model.ram_test_block_reason(session.physical_pc_id)
@@ -141,6 +210,7 @@ func _refresh_physical() -> void:
 		_update_client_display()
 	else:
 		$InspectionHeader/Titles/Description.text = model.localized_boot_result(pc)
+		$InspectionHeader/Titles/Eyebrow.text = Prefs.t("INSPEÇÃO VISUAL  /  %s") % pc.model if pc.has("case_key") else "INSPEÇÃO VISUAL  /  DESKTOP ATX"
 	%Phillips.disabled = not model.state.tools
 	_inventory.clear()
 	var available: Array = model.available_parts()
@@ -178,10 +248,13 @@ func configure(value: RefCounted) -> void:
 	if device_changed:
 		preview.reset_view()
 	_show_preview(preview.visible and not device_changed)
+	refresh_case_picker()
 	%Phillips.disabled = session == null
 	%Hands.disabled = session == null
 	%LidAction.disabled = session == null
 	if session == null:
+		$InspectionHeader/Titles/Eyebrow.text = "INSPEÇÃO VISUAL"
+		$InspectionHeader/Titles/Description.text = "Nenhum equipamento na bancada."
 		%ScrewCount.text = "—"
 		%LidStatus.text = "Nenhum equipamento"
 		%SelectedName.text = "Nenhum equipamento na bancada"
@@ -198,7 +271,7 @@ func configure(value: RefCounted) -> void:
 func _show_preview(active: bool) -> void:
 	active = active and session != null
 	%PreviewToggle.text = "Vista 2D" if active else "Vista 3D"
-	%Title.text = "Gabinete — vista 3D" if active else "Gabinete — lateral esquerda"
+	%Title.text = "Nenhum equipamento na bancada" if session == null else "Gabinete — vista 3D" if active else "Gabinete — lateral esquerda"
 	preview.visible = active
 	canvas.visible = session != null and not active
 	if active:

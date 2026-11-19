@@ -8,7 +8,10 @@ signal feedback(text: String, failed: bool)
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const Audio := preload("res://Scripts/Gameplay/workshop_audio.gd")
 const Orders := preload("res://Scripts/Gameplay/service_orders.gd")
-const PHYSICAL_LOCATIONS := ["floor", "carried", "shelf", "tray", "bench", "counter", "delivery", "installed", "inventory", "returned"]
+const Cases := preload("res://Scripts/Equipment/case_catalog.gd")
+const PHYSICAL_LOCATIONS := ["floor", "carried", "shelf", "tray", "bench", "counter", "delivery", "installed", "inventory", "returned", "sold"]
+const SELLABLE_LOCATIONS := ["floor", "carried", "shelf", "tray", "bench", "inventory"]
+const RESALE_CENTS_PER_CREDIT := 90
 const COUNTER_CAPACITY := 3
 const SHELF_CAPACITY := 9
 const SHELF_EXPANSIONS := [
@@ -17,6 +20,7 @@ const SHELF_EXPANSIONS := [
 ]
 const INVENTORY_CAPACITY := 3
 const PART_NAMES := {"cpu": "Processador", "cooling": "Refrigeração", "motherboard": "Placa-mãe", "ram": "Memória RAM", "gpu": "Placa de vídeo", "storage": "Armazenamento", "psu": "Fonte"}
+const ESSENTIAL_PARTS := ["motherboard", "cpu", "psu", "cooling", "gpu", "storage"]
 const FASTENERS := {"cpu": 0, "ram": 0, "gpu": 2, "storage": 4, "psu": 4, "cooling": 4, "motherboard": 6}
 const CONNECTIONS := {"cpu": ["socket"], "ram": [], "gpu": ["energia", "trava PCIe"], "storage": ["SATA dados", "SATA energia"], "psu": ["chicote de energia"], "cooling": ["CPU FAN"], "motherboard": ["ATX 24 pinos", "EPS CPU", "painel frontal"]}
 const HEAT_SPREADERS := {"Preto": Color("313943"), "Branco": Color("c9d0d8"), "Azul": Color("2865b0"), "Vermelho": Color("aa333a")}
@@ -45,8 +49,8 @@ const CATALOG := [
 	{"key": "storage", "kind": "storage", "model": "TR SATA 240 GB · sem sistema", "price": 100},
 	{"key": "psu", "kind": "psu", "model": "TR Power 450 W · ATX", "price": 160},
 	{"key": "cooling", "kind": "cooling", "model": "TR Air 90 · 90 mm", "price": 80, "socket": "TR4", "alternate_socket": "AX4"},
-	{"key": "amdera_ax550", "kind": "motherboard", "model": "Amdera AX550 · ATX", "price": 290, "socket": "AX4", "ddr": "DDR4", "board_art": "amdera"},
-	{"key": "intara_ix610", "kind": "motherboard", "model": "Intara IX610 · micro-ATX", "price": 310, "socket": "IX1700", "ddr": "DDR5", "board_art": "intara"},
+	{"key": "amdera_ax550", "kind": "motherboard", "model": "Amdera AX550 · ATX", "price": 290, "socket": "AX4", "ddr": "DDR4", "board_art": "amdera", "board_format": "ATX"},
+	{"key": "intara_ix610", "kind": "motherboard", "model": "Intara IX610 · micro-ATX", "price": 310, "socket": "IX1700", "ddr": "DDR5", "board_art": "intara", "board_format": "micro-ATX"},
 	{"key": "amdera_ryvon_3", "kind": "cpu", "model": RYVON_3_MODEL, "price": 185, "socket": "AX4"},
 	{"key": "amdera_ryvon_5", "kind": "cpu", "model": RYVON_5_MODEL, "price": 250, "socket": "AX4"},
 	{"key": "amdera_ryvon_7", "kind": "cpu", "model": RYVON_7_MODEL, "price": 380, "socket": "AX4"},
@@ -64,7 +68,7 @@ const CATALOG := [
 	{"key": "ssd_960", "kind": "storage", "model": "TR SSD SATA 960 GB · sem sistema", "price": 215},
 	{"key": "psu_550", "kind": "psu", "model": "TR Power 550 W · ATX", "price": 210},
 	{"key": "psu_650", "kind": "psu", "model": "TR Power 650 W · ATX", "price": 270}
-]
+] + Cases.MODELS
 var state: Dictionary = {}
 
 
@@ -88,7 +92,9 @@ func new_game(receiving: bool = false) -> void:
 		part.origin = "installed"
 		if kind == "ram" or kind == "motherboard": part.ddr = "DDR4"
 		if kind in ["cpu", "motherboard", "cooling"]: part.socket = "AX4"
-		if kind == "motherboard": part.board_art = "amdera"
+		if kind == "motherboard":
+			part.board_art = "amdera"
+			part.board_format = "ATX"
 		if kind == "ram": part.defects = ["Falha persistente de leitura"]
 		if kind == "storage": part.bootable = true
 		state.items[part.id] = part
@@ -150,11 +156,11 @@ func next_shelf_expansion() -> Dictionary:
 func shelf_expansion_block_reason(expansion: Dictionary) -> String:
 	if Orders.completed_count(state) < expansion.deliveries:
 		return Prefs.t("Desbloqueia com %d entregas.") % expansion.deliveries
-	var spendable: int = state.credits
+	var spendable: float = state.credits
 	for order in Orders.orders(self, "active"):
 		spendable -= int(order.deposit)
 	if spendable < expansion.price:
-		return Prefs.t("Você pode usar %s na expansão. Os adiantamentos ficam reservados para os pedidos.") % Prefs.money(maxi(0, spendable))
+		return Prefs.t("Você pode usar %s na expansão. Os adiantamentos ficam reservados para os pedidos.") % Prefs.money(maxf(0, spendable))
 	return ""
 
 
@@ -178,6 +184,22 @@ func bench_id() -> String:
 	return str(ids[0]) if not ids.is_empty() else ""
 
 
+func available_purchased_cases() -> Array[String]:
+	var result: Array[String] = []
+	for record in state.get("items", {}).values():
+		if record.has("case_key") and record.get("origin") == "purchase" and record.location in ["floor", "carried"] and not record.power:
+			result.append(record.id)
+	return result
+
+
+func place_purchased_case(id: String) -> bool:
+	if not bench_id().is_empty(): return fail("A bancada já está ocupada.")
+	if id not in available_purchased_cases(): return fail("Este gabinete ainda não está disponível para colocar na bancada.")
+	var record := item(id)
+	record.packaged = false
+	return move(id, "bench")
+
+
 func fail(text: String) -> bool:
 	Audio.play("error")
 	feedback.emit(Prefs.t(text), true)
@@ -199,6 +221,9 @@ func move(id: String, location: String, position: Vector2 = Vector2.ZERO) -> boo
 		return fail("O destino deve ficar dentro da oficina.")
 	if record.location in ["installed", "delivery", "returned"]:
 		return fail("Retire o componente ou aguarde a entrega antes de transportá-lo.")
+	if record.location == "sold": return fail("Este item já foi vendido.")
+	if record.has("case_key") and record.packaged:
+		return fail("Abra a embalagem antes de transportar o gabinete.")
 	if record.get("power", false): return fail("Desligue o computador antes de transportá-lo.")
 	if location == "inventory" and (record.kind == "pc" or at("inventory").size() >= INVENTORY_CAPACITY): return fail("Inventário: até 3 peças; transporte gabinetes nas mãos.")
 	if location == "carried" and carried() != "" and carried() != id:
@@ -219,16 +244,19 @@ func move(id: String, location: String, position: Vector2 = Vector2.ZERO) -> boo
 				record.shelf_slot = slot
 				break
 	if location == "inventory":
-		var used_inventory: Array = []
-		for key in at("inventory"):
-			if key != id: used_inventory.append(int(item(key).get("inventory_slot",-1)))
-		for slot in range(INVENTORY_CAPACITY):
-			if slot not in used_inventory:
-				record.inventory_slot = slot
-				break
+		record.inventory_slot = _free_inventory_slot(id)
 	record.location = location
 	record.position = [position.x, position.y]
 	return done("%s — %s" % [record.model, {"floor": "solto no chão", "carried": "carregando", "bench": "colocado na bancada", "shelf": "guardado na prateleira", "tray": "colocado na bandeja", "inventory": "no inventário"}[location]], "pickup" if location == "carried" else "place")
+
+
+func _free_inventory_slot(item_id: String) -> int:
+	var used: Array[int] = []
+	for id in at("inventory"):
+		if id != item_id: used.append(int(item(id).get("inventory_slot", -1)))
+	for slot in range(INVENTORY_CAPACITY):
+		if slot not in used: return slot
+	return -1
 
 
 func unpack(id: String) -> bool:
@@ -312,9 +340,7 @@ func use_ram_slot(pc_id: String, selected_id: String, slot: int = 0) -> bool:
 	if installed != "":
 		var destination := "tray" if at("tray").size() < 4 else "inventory"
 		if destination == "inventory" and at("inventory").size() >= INVENTORY_CAPACITY: return fail("Bandeja e inventário cheios. Guarde peças no armário.")
-		var old := item(installed)
-		old.location = destination
-		old.owner_pc = ""
+		_release_installed_part(installed, destination)
 		pc.components.erase(key)
 		pc.boot_ok = false
 		return done("RAM retirada para %s. Selecione outro módulo e clique no slot vazio." % ("a bandeja" if destination == "tray" else "o inventário"))
@@ -333,6 +359,8 @@ func use_ram_slot(pc_id: String, selected_id: String, slot: int = 0) -> bool:
 func toggle_power(pc_id: String) -> bool:
 	var pc := item(pc_id)
 	if pc.is_empty() or pc.location != "bench": return fail("Nenhum computador na bancada.")
+	var reason := assembly_power_block_reason(pc_id)
+	if not reason.is_empty(): return fail(reason)
 	pc.power = not pc.power
 	if not pc.power: pc.erase("test_job")
 	pc.boot_ok = false
@@ -346,6 +374,8 @@ func request_post(pc_id: String) -> bool:
 	if pc.is_empty() or pc.kind != "pc" or pc.location != "bench": return fail("Coloque um computador na bancada antes de testar.")
 	if pc.has("test_job"): return fail("Aguarde o teste de componente em andamento.")
 	if float(pc.boot_remaining) > 0: return fail("Aguarde o POST em andamento.")
+	var reason := assembly_power_block_reason(pc_id)
+	if not reason.is_empty(): return fail(reason)
 	pc.power = true
 	pc.boot_ok = false
 	pc.boot_remaining = 1.2
@@ -353,14 +383,27 @@ func request_post(pc_id: String) -> bool:
 	return done("POST iniciado. Aguarde a verificação dos componentes instalados.", "power_on")
 
 
+func assembly_power_block_reason(pc_id: String) -> String:
+	var pc := item(pc_id)
+	if not pc.has("case_key") or pc.power: return ""
+	for kind in ESSENTIAL_PARTS:
+		if not pc.components.has(kind):
+			return Prefs.t("Instale o componente essencial antes de ligar: %s.") % Prefs.t(PART_NAMES[kind])
+	for kind in ESSENTIAL_PARTS:
+		var mount: Dictionary = pc.get("mounts", {}).get(kind, {})
+		if mount.is_empty() or false in mount.screws or false in mount.connections.values():
+			return Prefs.t("Fixe e reconecte o componente antes de ligar: %s.") % Prefs.t(PART_NAMES[kind])
+	return ram_configuration_reason(pc_id)
+
+
 func evaluate_boot(pc_id: String) -> String:
 	var pc := item(pc_id)
 	if pc.has("mounts"):
 		for kind in pc.components:
-			if kind == "ram2": continue
+			if kind in ["ram", "ram2"]: continue
 			var mount: Dictionary = mounts(pc_id, kind)
 			if false in mount.screws or false in mount.connections.values(): return "Falha no POST: fixe e reconecte " + PART_NAMES.get(kind, kind)
-	for kind in ["motherboard", "cpu", "psu", "cooling", "gpu", "storage"]:
+	for kind in ESSENTIAL_PARTS:
 		var part := item(pc.components.get(kind, ""))
 		if part.is_empty(): return "Falha no POST: componente essencial ausente — " + kind
 		if int(part.health) < (45 if kind == "ram" else 15):
@@ -443,8 +486,14 @@ func purchase(key: String, heat_spreader_color: String = "") -> bool:
 		if not HEAT_SPREADERS.has(heat_spreader_color): return fail("Cor de dissipador indisponível.")
 	var price: int = product.price
 	if state.credits < price: return fail("Créditos insuficientes. Nenhuma compra realizada.")
-	var part := make_part(product.kind, product.model, 96, "delivery")
-	for field in ["ddr", "capacity_gb", "board_art", "socket", "alternate_socket"]:
+	var part := make_part("pc" if product.kind == "case" else product.kind, product.model, 100 if product.kind == "case" else 96, "delivery")
+	if product.kind == "case":
+		part.merge({
+			"case_key": key, "components": {}, "lid": true, "screws": [true, true, true, true],
+			"latches": [true, true], "tool": "hands", "power": false, "boot_remaining": 0.0,
+			"boot_ok": false, "boot_result": "Não testado",
+		})
+	for field in ["ddr", "capacity_gb", "board_art", "board_format", "socket", "alternate_socket"]:
 		if product.has(field): part[field] = product[field]
 	if not heat_spreader_color.is_empty():
 		part.heat_spreader_color = heat_spreader_color
@@ -453,12 +502,55 @@ func purchase(key: String, heat_spreader_color: String = "") -> bool:
 	part.origin = "purchase"
 	part.packaged = true
 	part.delivery_remaining = 3.0
-	var delivery_count := at("delivery").size()
-	part.position = [285.0 + float(delivery_count % 2) * 22.0, 80.0 - float(delivery_count % 3) * 25.0]
+	var position := _delivery_position()
+	if not position.is_finite(): return fail("Libere espaço na área de recebimento antes de comprar.")
+	part.position = [position.x, position.y]
 	state.items[part.id] = part
 	state.credits -= price
 	state.transactions.append({"id": uid(), "item_id": part.id, "amount": -price, "description": part.model})
 	return done("Compra registrada. A caixa chegará em três segundos.", "purchase")
+
+
+func sale_offers() -> Dictionary:
+	var offers := {}
+	for transaction in state.transactions:
+		if not transaction.has("item_id") or transaction.amount >= 0: continue
+		var record := item(transaction.item_id)
+		if record.get("location") in SELLABLE_LOCATIONS and _can_sell_record(record):
+			offers[record.id] = _resale_cents(-int(transaction.amount)) / 100.0
+	return offers
+
+
+func sell(id: String) -> bool:
+	var price: float = sale_offers().get(id, 0.0)
+	if price <= 0.0: return fail("Este item não está disponível para venda.")
+	var record := item(id)
+	record.location = "sold"
+	state.credits = (roundi(state.credits * 100.0) + roundi(price * 100.0)) / 100.0
+	state.transactions.append({"id": uid(), "item_id": id, "type": "sale", "amount": price, "description": record.model})
+	return done(Prefs.t("Vendido: %s · %s recebidos.") % [record.model, Prefs.money(price)], "purchase")
+
+
+static func _can_sell_record(record: Dictionary) -> bool:
+	# A cabinet sale transfers the shell only. Installed parts must be removed first.
+	return record.kind != "pc" or (record.has("case_key") and record.components.is_empty())
+
+
+static func _resale_cents(purchase_price: int) -> int:
+	return purchase_price * RESALE_CENTS_PER_CREDIT
+
+
+func _delivery_position() -> Vector2:
+	var occupied: Array[Vector2] = []
+	for record in state.items.values():
+		if record.location in ["floor", "delivery"]:
+			occupied.append(Vector2(record.position[0], record.position[1]))
+	for y in [80, 48, 16, -16]:
+		for x in [285, 317, 253, 221]:
+			var position := Vector2(x, y)
+			if not occupied.any(func(other: Vector2) -> bool: return other.distance_squared_to(position) < 28.0 ** 2):
+				return position
+	return Vector2.INF
 
 
 func tick(delta: float) -> void:
@@ -517,8 +609,9 @@ func localized_boot_result(pc: Dictionary) -> String:
 func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> bool:
 	if not preload("res://Scripts/World/workshop_appearance.gd").valid(candidate.get("decoration",{})): return false
 	if candidate.get("version") != 1 or not candidate.get("items") is Dictionary or not candidate.get("transactions") is Array: return false
-	if not candidate.get("credits") is float and not candidate.get("credits") is int: return false
-	if not is_finite(float(candidate.credits)) or candidate.credits < 0 or int(candidate.credits) != candidate.credits: return false
+	if not money_value(candidate.get("credits")) or candidate.credits < 0: return false
+	var balance_adjustment: Variant = candidate.get("balance_adjustment", 0)
+	if not money_value(balance_adjustment) or balance_adjustment < 0: return false
 	if not candidate.get("tools") is bool or not candidate.get("player") is Array or candidate.player.size() != 2: return false
 	for coordinate in candidate.player:
 		if not numeric(coordinate) or absf(float(coordinate)) > 2000: return false
@@ -536,6 +629,8 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 		if not r.get("tested") is bool or not r.get("packaged") is bool or not r.get("defects") is Array: return false
 		if r.get("kind") not in ["pc", "ram", "gpu", "storage", "psu", "cooling", "motherboard", "cpu"]: return false
 		if r.kind in ["ram", "motherboard"] and r.get("ddr", "") not in ["DDR4", "DDR5"]: return false
+		if r.has("board_format") and (r.kind != "motherboard" or r.board_format not in Cases.FORMATS): return false
+		if r.has("case_key") and (r.kind != "pc" or not r.case_key is String): return false
 		if r.has("heat_spreader_color") and (r.kind != "ram" or not HEAT_SPREADERS.has(r.heat_spreader_color)): return false
 		if not r.get("position") is Array or r.position.size() != 2: return false
 		for coordinate in r.position:
@@ -594,6 +689,13 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 			if not numeric(r.get("boot_remaining")) or r.boot_remaining < 0: return false
 			for flag in r.screws + r.latches:
 				if not flag is bool: return false
+			var case_model := Cases.get_model(r.case_key) if r.has("case_key") else {}
+			if r.has("case_key"):
+				if case_model.is_empty() or r.get("origin") != "purchase": return false
+				if r.location not in ["delivery", "floor", "carried", "bench", "sold"] or r.has("service_order"): return false
+				if r.location != "bench" and r.power: return false
+				if r.packaged and (r.location not in ["delivery", "floor", "sold"] or not r.components.is_empty() or not r.lid): return false
+				if not r.lid and true in r.screws: return false
 			for kind in r.components:
 				if not r.components[kind] is String: return false
 				var child_id: String = r.components[kind]
@@ -601,18 +703,26 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 				if not candidate.items[child_id] is Dictionary: return false
 				var child: Dictionary = candidate.items[child_id]
 				if child.get("kind") != ("ram" if kind == "ram2" else kind) or child.get("location") != "installed" or child.get("owner_pc") != id: return false
+				if not case_model.is_empty() and not _valid_assembly_part(candidate.items, r, case_model, kind, child): return false
 				referenced[child_id] = id
 	for id in candidate.items:
 		if candidate.items[id].location == "installed" and not referenced.has(id): return false
 	if not Orders.valid(candidate): return false
-	var credit_total := 500 + Orders.earnings(candidate)
+	var credit_total_cents := (500 + Orders.earnings(candidate)) * 100 + roundi(balance_adjustment * 100.0)
 	var deliveries := Orders.completed_count(candidate)
 	var shelf_level := 0
 	var transaction_ids: Dictionary = {}
 	var purchased_ids: Dictionary = {}
+	var sold_ids: Dictionary = {}
 	for transaction in candidate.transactions:
 		if not transaction is Dictionary or not transaction.get("id") is String or transaction_ids.has(transaction.id): return false
-		if not numeric(transaction.get("amount")) or int(transaction.amount) != transaction.amount or transaction.amount >= 0: return false
+		if not money_value(transaction.get("amount")): return false
+		var amount_cents := roundi(transaction.amount * 100.0)
+		var sale: bool = transaction.get("type") == "sale"
+		if sale:
+			if amount_cents <= 0 or transaction.has("shelf_expansion"): return false
+		elif amount_cents >= 0 or amount_cents % 100 != 0:
+			return false
 		transaction_ids[transaction.id] = true
 		if transaction.has("shelf_expansion"):
 			if transaction.has("item_id") or shelf_level >= SHELF_EXPANSIONS.size(): return false
@@ -620,16 +730,48 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 			if not transaction.shelf_expansion is String or transaction.shelf_expansion != expansion.id or transaction.amount != -expansion.price or deliveries < expansion.deliveries: return false
 			shelf_level += 1
 		else:
-			if not transaction.get("item_id") is String or not candidate.items.has(transaction.item_id) or purchased_ids.has(transaction.item_id): return false
-			purchased_ids[transaction.item_id] = true
-		credit_total += int(transaction.amount)
+			var item_id: Variant = transaction.get("item_id")
+			if not item_id is String or not candidate.items.has(item_id): return false
+			if sale:
+				if not purchased_ids.has(item_id) or sold_ids.has(item_id) or amount_cents != _resale_cents(purchased_ids[item_id]): return false
+				var record: Dictionary = candidate.items[item_id]
+				if record.location != "sold" or not _can_sell_record(record): return false
+				sold_ids[item_id] = true
+			else:
+				if purchased_ids.has(item_id): return false
+				purchased_ids[item_id] = -int(transaction.amount)
+		credit_total_cents += amount_cents
+	for id in candidate.items:
+		if candidate.items[id].has("case_key") and not purchased_ids.has(id): return false
+		if candidate.items[id].location == "sold" and not sold_ids.has(id): return false
 	var capacity := _capacity_for_shelf_level(shelf_level)
 	if shelves.any(func(slot: int) -> bool: return slot >= capacity): return false
-	return carries <= 1 and benches <= 1 and trays <= 4 and inventory_count <= inventory_limit and credit_total == int(candidate.credits)
+	return carries <= 1 and benches <= 1 and trays <= 4 and inventory_count <= inventory_limit and credit_total_cents == roundi(candidate.credits * 100.0)
 
 
 static func numeric(value: Variant) -> bool:
 	return (value is int or value is float) and is_finite(float(value))
+
+
+static func money_value(value: Variant) -> bool:
+	return numeric(value) and absf(float(value) * 100.0 - roundf(float(value) * 100.0)) < 0.00001
+
+
+func _valid_assembly_part(items: Dictionary, pc: Dictionary, case_model: Dictionary, kind: String, part: Dictionary) -> bool:
+	if part.get("packaged") != false or (not PART_NAMES.has(kind) and kind != "ram2"): return false
+	if kind not in ["ram", "ram2"] and not pc.get("mounts", {}).has(kind): return false
+	if kind == "motherboard": return Cases.board_format(part) in case_model.board_formats
+	if kind in ["psu", "storage"]: return true
+	var board_id: Variant = pc.components.get("motherboard")
+	if not board_id is String: return false
+	var board: Variant = items.get(board_id)
+	if not board is Dictionary: return false
+	if kind == "gpu": return true
+	if kind in ["ram", "ram2"]: return part.get("ddr") == board.get("ddr")
+	if kind == "cooling" and not pc.components.has("cpu"): return false
+	var board_socket: Variant = board.get("socket", "TR4")
+	var part_socket: Variant = part.get("socket", "TR4")
+	return board_socket is String and part_socket is String and (part_socket == board_socket or part.get("alternate_socket") == board_socket)
 
 
 func mounts(pc_id: String, kind: String) -> Dictionary:
@@ -691,21 +833,27 @@ func use_component(pc_id: String, kind: String, selected_id: String) -> bool:
 	if kind == "motherboard":
 		for child in ["cpu", "ram", "ram2", "gpu", "cooling"]:
 			if pc.components.has(child): return fail("Retire CPU, cooler, RAM e GPU antes de retirar a placa-mãe.")
-	var mount := mounts(pc_id, kind)
 	if installed != "":
+		var mount := mounts(pc_id, kind)
 		if true in mount.screws: return fail("Solte os %d parafuso(s) restantes de %s." % [mount.screws.count(true), PART_NAMES[kind]])
 		if true in mount.connections.values(): return fail("Libere os conectores / travas de " + PART_NAMES[kind] + ": " + ", ".join(CONNECTIONS[kind]))
 		var destination := "tray" if at("tray").size() < 4 else "inventory"
 		if destination == "inventory" and at("inventory").size() >= INVENTORY_CAPACITY: return fail("Bandeja e inventário cheios. Guarde peças no armário.")
-		var part := item(installed)
-		part.location = destination
-		part.owner_pc = ""
+		_release_installed_part(installed, destination)
 		pc.components.erase(kind)
+		pc.mounts.erase(kind)
 		pc.boot_ok = false
 		return done(PART_NAMES[kind] + " retirada para " + ("a bandeja." if destination == "tray" else "o inventário."))
 	if selected_id not in available_parts() or item(selected_id).kind != kind: return fail("Selecione uma peça compatível no inventário da inspeção.")
 	var part := item(selected_id)
 	var board := item(pc.components.get("motherboard", ""))
+	if kind == "motherboard" and pc.has("case_key"):
+		var format := Cases.board_format(part)
+		var supported: Array = Cases.get_model(pc.case_key).board_formats
+		if format not in supported:
+			return fail(Prefs.t("Formato incompatível: %s. Este gabinete aceita %s.") % [
+				Prefs.t("Desconhecido") if format.is_empty() else format, " / ".join(supported),
+			])
 	if kind in ["cpu", "ram", "gpu", "cooling"] and board.is_empty(): return fail("Instale a placa-mãe primeiro.")
 	if kind == "cooling" and not pc.components.has("cpu"): return fail("Encaixe o processador antes do cooler.")
 	if kind in ["cpu", "cooling"]:
@@ -713,11 +861,20 @@ func use_component(pc_id: String, kind: String, selected_id: String) -> bool:
 		var sockets := mounting_sockets(part)
 		if board_socket not in sockets:
 			return fail("Socket incompatível: a peça usa %s e a placa-mãe usa %s." % [" / ".join(sockets), board_socket])
+	mounts(pc_id, kind)
 	part.location = "installed"
 	part.owner_pc = pc_id
 	pc.components[kind] = selected_id
 	pc.boot_ok = false
 	return done(PART_NAMES[kind] + " encaixada. Reconecte e fixe todos os pontos destacados.")
+
+
+func _release_installed_part(id: String, destination: String) -> void:
+	var part := item(id)
+	part.location = destination
+	part.owner_pc = ""
+	if destination == "inventory":
+		part.inventory_slot = _free_inventory_slot(id)
 
 
 func mounting_sockets(part: Dictionary) -> PackedStringArray:

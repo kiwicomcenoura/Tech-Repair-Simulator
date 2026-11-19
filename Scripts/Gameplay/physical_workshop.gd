@@ -10,6 +10,7 @@ const Session := preload("res://Scripts/Inspection/inspection_session.gd")
 const Actor := preload("res://Scenes/Items/PhysicalItem.tscn")
 const Proximity := preload("res://Scripts/World/interaction_range.gd")
 const TOOLBOX_ACCESS_POSITION := Vector2(-210, 50)
+const HIDDEN_ITEM_LOCATIONS := ["installed", "delivery", "inventory", "shelf", "returned", "sold"]
 
 @export var save_path: String = "user://workshop_save_v1.json"
 @export var start_with_delivery := false
@@ -42,6 +43,7 @@ func _ready() -> void:
 	ledger.changed.connect(_on_changed)
 	ledger.feedback.connect(_feedback)
 	ledger.new_game(false)
+	bench_ui.inspection.bind_workshop(self)
 	_make_hud()
 	storage_ui = preload("res://Scenes/UI/StorageInventory.tscn").instantiate()
 	storage_ui.workshop = self
@@ -238,13 +240,13 @@ func _prompt() -> String:
 		return Prefs.t("Carregando: %s\nE — Soltar") % ledger.item(held).model
 	if _near_tools(): return "F — Abrir caixa de ferramentas"
 	if _near_shelf(): return "F — Abrir armário\nI — Inventário"
+	var bench_pc := _bench_pickup()
 	var nearest := _nearest_item()
 	if nearest != "":
 		var item_hint := Prefs.t("E — Abrir embalagem · " if ledger.item(nearest).packaged else "E — Pegar · ") + ledger.known_description(nearest)
-		if not _bench_pickup().is_empty():
+		if not bench_pc.is_empty():
 			item_hint += "\n" + Prefs.t("Shift+E — Pegar gabinete")
 		return item_hint
-	var bench_pc := _bench_pickup()
 	if not bench_pc.is_empty():
 		return "F — Abrir bancada\nDesligue o PC para transportá-lo" if ledger.item(bench_pc).power else "F — Abrir bancada\nE — Pegar gabinete"
 	return ""
@@ -317,6 +319,7 @@ func _on_changed() -> void:
 	_syncing = true
 	_sync_nodes()
 	if selected_ram not in ledger.available_ram(): selected_ram = ""
+	if selected_part not in ledger.available_parts(): selected_part = ""
 	for data in equipment_views.values():
 		var session: RefCounted = data.get_inspection_session()
 		if session != null: session.changed.emit()
@@ -334,21 +337,25 @@ func _feedback(text: String, failed: bool) -> void:
 	last_message = text
 	var id := ledger.bench_id()
 	if id != "" and equipment_views.has(id):
-		var session: RefCounted = equipment_views[id].get_inspection_session()
+		var data: Resource = equipment_views[id]
+		var session: RefCounted = data.get_inspection_session()
 		if session != null: session.notice.emit(text, failed)
 
 
 func _sync_nodes() -> void:
 	for id in actors.keys():
 		var r: Dictionary = ledger.item(id)
-		if r.is_empty() or r.location in ["installed", "delivery", "inventory", "shelf", "returned"]:
+		if r.is_empty() or r.location in HIDDEN_ITEM_LOCATIONS:
 			var old: Node2D = actors[id]
 			if old.get_parent() != null: old.get_parent().remove_child(old)
 			old.queue_free()
 			actors.erase(id)
 	for r in ledger.state.items.values():
+		if r.location == "sold":
+			equipment_views.erase(r.id)
+			continue
 		if r.kind == "pc": _sync_equipment(r)
-		if r.location in ["installed", "delivery", "inventory", "shelf", "returned"]: continue
+		if r.location in HIDDEN_ITEM_LOCATIONS: continue
 		if not actors.has(r.id):
 			var actor: Node2D = Actor.instantiate()
 			actor.item_id = r.id
@@ -386,10 +393,15 @@ func _sync_equipment(pc: Dictionary) -> void:
 	if not equipment_views.has(pc.id):
 		var data := Data.new()
 		data.equipment_id = pc.id
+		data.case_key = pc.get("case_key", "")
 		data.equipment_type = &"desktop"
 		data.inspection_profile = &"desktop_atx"
-		data.owner_id = "recebimento"
-		data.owner_name = Orders.get_order(ledger, pc.get("service_order", "")).get("client", "Equipamento recebido")
+		if data.case_key.is_empty():
+			data.owner_id = "recebimento"
+			data.owner_name = Orders.get_order(ledger, pc.get("service_order", "")).get("client", "Equipamento recebido")
+		else:
+			data.owner_id = "oficina"
+			data.owner_name = "Oficina"
 		var session := Session.new()
 		session.bind_workshop(self, pc.id)
 		session.changed.connect(_session_changed.bind(pc.id))
@@ -398,7 +410,10 @@ func _sync_equipment(pc: Dictionary) -> void:
 	var resource: Resource = equipment_views[pc.id]
 	resource.display_name = pc.model
 	resource.components = pc.components.duplicate()
-	resource.maintenance_state = "Inicialização aprovada" if pc.boot_ok else "Em manutenção"
+	if not resource.case_key.is_empty() and not pc.boot_ok:
+		resource.maintenance_state = "Gabinete vazio" if pc.components.is_empty() else "Montagem em andamento"
+	else:
+		resource.maintenance_state = "Inicialização aprovada" if pc.boot_ok else "Em manutenção"
 
 
 func place_via_dock(item: Node2D) -> bool:
@@ -487,6 +502,7 @@ func load_game() -> bool:
 	actors.clear()
 	equipment_views.clear()
 	selected_ram = ""
+	selected_part = ""
 	ledger.state = candidate
 	ledger.update_cpu_models()
 	_store_legacy_ram()

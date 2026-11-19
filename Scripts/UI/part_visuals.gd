@@ -1,7 +1,11 @@
 extends RefCounted
 ## Reuse original pixel assets, trimming transparent world-placement margins.
 const AMDERA_CPU := preload("res://Assets/Inspection/Layers/cpu_amdera.png")
+const BOARD_ART_SIZE := Vector2(145, 115)
+const AMDERA_CPU_SEAT := Rect2(44.5, 23.5, 34, 34)
+const INTARA_CPU_SEAT := Rect2(48, 26, 29, 28)
 const Ledger := preload("res://Scripts/Gameplay/workshop_ledger.gd")
+const Cases := preload("res://Scripts/Equipment/case_catalog.gd")
 static var _cache: Dictionary = {}
 
 static func board_texture(variant: String, fallback: Texture2D) -> Texture2D:
@@ -10,15 +14,27 @@ static func board_texture(variant: String, fallback: Texture2D) -> Texture2D:
 		"intara": return preload("res://Assets/Inspection/Layers/motherboard_intara.png")
 	return fallback
 
+
+static func cpu_seat(variant: String, board_area: Rect2) -> Rect2:
+	var source := INTARA_CPU_SEAT if variant == "intara" else AMDERA_CPU_SEAT
+	var scale := board_area.size / BOARD_ART_SIZE
+	return Rect2(board_area.position + source.position * scale, source.size * scale)
+
+
 static func icon(part: Dictionary) -> Texture2D:
 	var kind: String = part.kind
 	var board_art: String = part.get("board_art", "")
 	if kind == "cpu" and part.get("socket") == "AX4": return AMDERA_CPU
 	var finish: String = part.get("heat_spreader_color", "")
 	if Ledger.HEAT_SPREADERS.has(finish): return ram_heat_spreader(finish)
-	var key := kind + ":" + board_art
+	var case_key: String = part.get("case_key", part.get("key", "") if kind == "case" else "")
+	var key := "case:" + case_key if not case_key.is_empty() else kind + ":" + board_art
 	if not _cache.has(key):
-		var source: Texture2D = load("res://Assets/Physical/ram_catalog.png" if kind == "ram" else "res://Assets/Inspection/Layers/" + kind + ".png")
+		var source: Texture2D
+		if not case_key.is_empty():
+			source = Cases.texture(case_key)
+		else:
+			source = load("res://Assets/Physical/ram_catalog.png" if kind == "ram" else "res://Assets/Inspection/Layers/" + kind + ".png")
 		if kind == "motherboard": source = board_texture(board_art, source)
 		var atlas := AtlasTexture.new()
 		atlas.atlas = source

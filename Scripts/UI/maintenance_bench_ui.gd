@@ -3,6 +3,7 @@ extends CanvasLayer
 
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const VideoScreen := preload("res://Scripts/UI/bench_video_screen.gd")
+const Cases := preload("res://Scripts/Equipment/case_catalog.gd")
 
 signal opened
 signal closed
@@ -49,7 +50,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if inspection.visible and not can_inspect():
+	if inspection.visible and has_equipment() and not can_inspect():
 		_refresh_equipment()
 	if is_open:
 		_update_tests()
@@ -180,6 +181,13 @@ func _update_tests() -> void:
 	_post_button.disabled = busy
 	diagnostic.disabled = busy
 	_test_power_button.text = "Desligar PC" if pc.power else "Ligar PC"
+	var power_reason: String = model.assembly_power_block_reason(s.physical_pc_id)
+	_post_button.disabled = busy or not power_reason.is_empty()
+	diagnostic.disabled = _post_button.disabled
+	_test_power_button.disabled = not power_reason.is_empty()
+	_post_button.tooltip_text = power_reason
+	diagnostic.tooltip_text = power_reason
+	_test_power_button.tooltip_text = power_reason
 	var reason: String = model.ram_test_block_reason(s.physical_pc_id)
 	_ram_test_button.disabled = not reason.is_empty()
 	_ram_test_button.tooltip_text = reason if not reason.is_empty() else "Avaliar a RAM instalada, mesmo se ela impedir a inicialização do sistema."
@@ -261,67 +269,74 @@ func close_bench() -> void:
 
 
 func open_inspection() -> bool:
-	if not is_open or not can_inspect():
+	if not is_open or (has_equipment() and not can_inspect()):
 		_layout.get_node("Actions/Context/Reason").text = "Nenhum equipamento na bancada." if not has_equipment() else "Este equipamento ainda não possui um perfil de inspeção compatível."
 		return false
-	_layout.get_node("Body").hide()
-	_layout.get_node("Actions").hide()
-	_layout.get_node("FooterDivider").hide()
+	_set_overview_visible(false)
 	inspection.show()
-	inspection.get_node("%ReturnToBench").grab_focus()
+	inspection.focus_entry()
 	return true
 
 
 func exit_inspection() -> void:
 	if not inspection.visible:
 		return
+	inspection.close_case_picker()
 	inspection.close_client_os(false)
 	inspection.hide()
-	_layout.get_node("Body").show()
-	_layout.get_node("Actions").show()
-	_layout.get_node("FooterDivider").show()
-	close_button.grab_focus()
+	_set_overview_visible(true)
+	if close_button.is_inside_tree(): close_button.grab_focus()
+
+
+func _set_overview_visible(value: bool) -> void:
+	_layout.get_node("Body").visible = value
+	_layout.get_node("Actions").visible = value
+	_layout.get_node("FooterDivider").visible = value
 
 
 func _refresh_equipment() -> void:
 	var data: Resource = equipment_dock.get_equipment() if has_equipment() else null
-	if data != _bound_equipment or data == null or not data.supports_inspection():
+	if data != null and not data.supports_inspection():
 		exit_inspection()
+	var was_empty := inspection_session == null
 	_bound_equipment = data
 	inspection_session = data.get_inspection_session() if data != null else null
 	inspection.configure(inspection_session)
+	if inspection.visible and was_empty != (inspection_session == null):
+		inspection.focus_entry()
 	var present := data != null
+	var assembly_case: bool = present and not data.case_key.is_empty()
 	var equipment := _layout.get_node("Body/EquipmentPanel/Content")
 	equipment.get_node("EquipmentName").text = (data.display_name if not data.display_name.is_empty() else data.equipment_id) if present else "Nenhum equipamento na bancada"
-	equipment.get_node("EquipmentIllustration").visible = present
+	equipment.get_node("EquipmentIllustration").visible = present and not assembly_case
 	equipment.get_node("EmptyExplanation").text = "Equipamento físico associado à área de apoio." if present else "Coloque um equipamento físico na bancada para consultar seus dados."
-	equipment.get_node("Type/Value").text = str(data.equipment_type).capitalize() if present else "—"
+	equipment.get_node("Type/Value").text = "Gabinete" if assembly_case else str(data.equipment_type).capitalize() if present else "—"
 	equipment.get_node("Condition/Value").text = data.condition if present else "—"
 	equipment.get_node("Status/Value").text = data.maintenance_state if present else "Aguardando equipamento"
 	equipment.get_node("Status/Value").autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_layout.get_node("Header/Status/Text").text = "○  EQUIPAMENTO ASSOCIADO" if present else "○  SEM EQUIPAMENTO"
-	_layout.get_node("Actions/Context/Reason").text = ("Inspeção visual disponível. Reparos e testes indisponíveis." if can_inspect() else "Perfil de inspeção não disponível para este equipamento.") if present else "Indisponíveis enquanto a bancada estiver vazia."
+	_layout.get_node("Actions/Context/Reason").text = ("Inspeção visual disponível. Reparos e testes indisponíveis." if can_inspect() else "Perfil de inspeção não disponível para este equipamento.") if present else "Abra a inspeção para escolher um gabinete comprado."
 	var overview := tabs.get_tab_control(0).get_node("Content")
-	overview.get_node("InformationCards/Identification/Content/Value").text = "Desktop · ATX" if present else "—"
+	overview.get_node("InformationCards/Identification/Content/Value").text = Cases.get_model(data.case_key).format if assembly_case else "Desktop · ATX" if present else "—"
 	overview.get_node("InformationCards/Identification/Content/Caption").text = (Prefs.t("Proprietário: %s") % (data.owner_name if not data.owner_name.is_empty() else data.owner_id)) if present else "Nome, modelo e número de série"
 	overview.get_node("InformationCards/Condition/Content/Value").text = data.condition if present else "—"
 	overview.get_node("InformationCards/Condition/Content/Caption").text = "Sem diagnóstico ou testes executados" if present else "Estado e situação de manutenção"
-	overview.get_node("EquipmentPreview/Content/Blueprint").visible = present
+	overview.get_node("EquipmentPreview/Content/Blueprint").visible = present and not assembly_case
 	overview.get_node("EquipmentPreview/Content/EmptyTitle").text = equipment.get_node("EquipmentName").text
-	overview.get_node("EquipmentPreview/Content/EmptyCaption").text = "Use Inspecionar para acessar o equipamento compatível." if present else "A visualização fica oculta até um equipamento ser colocado na bancada."
+	overview.get_node("EquipmentPreview/Content/EmptyCaption").text = "Use Inspecionar para acessar o equipamento compatível." if present else "Abra a inspeção para escolher um gabinete comprado."
 	var component_keys := {"CPU": "cpu", "GPU": "gpu", "RAM": "ram", "MB": "motherboard", "SSD": "storage", "PSU": "psu", "FAN": "cooling"}
 	for code in component_keys:
 		var value := "Slot vazio"
 		if present:
-			value = "Presente · não testado" if data.components.has(component_keys[code]) and data.components[component_keys[code]] != null else "Não informado"
+			value = "Presente · não testado" if data.components.has(component_keys[code]) and data.components[component_keys[code]] != null else "Slot vazio" if assembly_case else "Não informado"
 			if code == "RAM" and inspection_session != null and is_instance_valid(inspection_session.workshop) and not data.components.has("ram"):
 				value = "Slot vazio"
 		tabs.get_tab_control(2).get_node("Content/ComponentSlots/Slot" + code + "/Row/Labels/Empty").text = value
 	tabs.get_tab_control(1).get_node("Content/DiagnosisNote/Text").text = "Nenhum diagnóstico executado." if present else "Aguardando equipamento para análise."
 	tabs.get_tab_control(3).get_node("Content/EmptyTests/Content/Title").text = "Nenhum teste executado" if present else "Aguardando equipamento"
 	var inspect_button: Button = _layout.get_node("Actions/Inspect")
-	inspect_button.disabled = not can_inspect()
-	inspect_button.tooltip_text = "Abrir inspeção visual" if can_inspect() else "Indisponível: coloque um equipamento físico compatível na bancada."
+	inspect_button.disabled = present and not can_inspect()
+	inspect_button.tooltip_text = "Abrir inspeção visual" if not inspect_button.disabled else "Indisponível: coloque um equipamento físico compatível na bancada."
 	for name in ["Replace", "Finish", "StartDiagnostic"]:
 		find_child(name, true, false).disabled = true
 		find_child(name, true, false).tooltip_text = "Operação ainda não implementada." if present else "Indisponível: nenhum equipamento na bancada."
@@ -332,7 +347,7 @@ func _input(event: InputEvent) -> void:
 	if is_open and event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		if inspection.visible:
-			if not inspection.handle_client_escape(): exit_inspection()
+			if not inspection.close_case_picker() and not inspection.handle_client_escape(): exit_inspection()
 		else:
 			close_bench()
 

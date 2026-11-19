@@ -62,7 +62,8 @@ func run() -> void:
 	await ticks(4)
 	check(player.global_position.is_equal_approx(stopped_at), "WASD movement blocked while open")
 	Input.action_release("move_right")
-	for name in ["Inspect", "Replace", "Finish", "StartDiagnostic"]:
+	check(not ui.find_child("Inspect", true, false).disabled, "Inspection can open the empty cabinet selector")
+	for name in ["Replace", "Finish", "StartDiagnostic"]:
 		var action: Button = ui.find_child(name, true, false)
 		check(action.disabled, "Empty action disabled: " + name)
 	var capture := "--capture" in OS.get_cmdline_user_args()

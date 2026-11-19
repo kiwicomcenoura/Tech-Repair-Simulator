@@ -16,6 +16,7 @@ const PART_ART := {
 	"ram": preload("res://Assets/Inspection/Layers/ram.png"),
 }
 const BOARD_FACE_Z := -0.371
+const CPU_PACKAGE_SIZE := Vector2(0.40, 0.40)
 const GPU_BACKPLATE_Y := -0.1275
 const GPU_POWER_FACE_X := 0.305
 const COOLER_FRAME_EDGE_X := -0.295
@@ -67,7 +68,7 @@ const UNPLUGGED_OFFSETS := {
 const EMPTY_MOUNTS := {
 	"motherboard": [Vector3(-0.52, 0.29, -0.415), Vector2(1.24, 0.96)],
 	"cooling": [Vector3(-0.53, 0.51, -0.23), Vector2(0.48, 0.48)],
-	"cpu": [Vector3(-0.53, 0.51, -0.31), Vector2(0.34, 0.34)],
+	"cpu": [Vector3(-0.53, 0.51, -0.31), CPU_PACKAGE_SIZE],
 	"gpu": [Vector3(-0.42, -0.24, 0.32), Vector2(1.32, 0.15)],
 	"psu": [Vector3(-0.64, -0.72, 0.416), Vector2(0.95, 0.35)],
 	"storage": [Vector3(0.80, -0.08, -0.17), Vector2(0.44, 0.60)],
@@ -260,8 +261,8 @@ func _build_components() -> void:
 	_part_faces.motherboard = _face(board, Vector3(-0.33, 0.34, BOARD_FACE_Z), Vector2(1.46, 1.09))
 	_cable_sources["storage:0"] = _connector(board, &"", Vector3(0.337, -0.014, BOARD_FACE_Z), Vector2i(5, 1), Vector3.ZERO)
 	var cpu := _part("cpu")
-	_box(cpu, Vector3(-0.53, 0.51, -0.291), Vector3(0.34, 0.34, 0.05), GOLD)
-	_part_faces.cpu = _face(cpu, Vector3(-0.53, 0.51, -0.264), Vector2(0.34, 0.34))
+	_box(cpu, Vector3(-0.53, 0.51, -0.291), Vector3(CPU_PACKAGE_SIZE.x, CPU_PACKAGE_SIZE.y, 0.05), GOLD)
+	_part_faces.cpu = _face(cpu, Vector3(-0.53, 0.51, -0.264), CPU_PACKAGE_SIZE)
 	var cooler := _part("cooling")
 	for i in 8:
 		_box(cooler, Vector3(-0.53, 0.51, -0.278 + i * 0.032), Vector3(0.47, 0.47, 0.021), STEEL)

@@ -566,7 +566,107 @@ Capacidade máxima do armário alcançada.|Cabinet is fully expanded.|Se ha alca
 Ampliar armário · %s|Expand cabinet · %s|Ampliar armario · %s
 Amplie o armário de %d para %d espaços.|Expand the cabinet from %d to %d slots.|Amplía el armario de %d a %d espacios.
 Ampliar o armário para %d espaços por %s?|Expand the cabinet to %d slots for %s?|¿Ampliar el armario a %d espacios por %s?
-CONFIRMAR COMPRA / ARMÁRIO|CONFIRM PURCHASE / CABINET|CONFIRMAR COMPRA / ARMARIO"""
+CONFIRMAR COMPRA / ARMÁRIO|CONFIRM PURCHASE / CABINET|CONFIRMAR COMPRA / ARMARIO
+Gabinetes|PC Cases|Gabinetes
+Pesquisar por nome, marca ou formato|Search by name, brand or form factor|Buscar por nombre, marca o formato
+Nenhum produto encontrado.|No matching products.|No se encontraron productos.
+ATX Aquário|ATX Aquarium|ATX Acuario
+Grafite|Graphite|Grafito
+Preto e vermelho|Black and red|Negro y rojo
+Tampa de vidro|Glass side panel|Panel lateral de vidrio
+Tampa de aço|Steel side panel|Panel lateral de acero
+Acabamento: %s · %s|Finish: %s · %s|Acabado: %s · %s
+Placas-mãe: %s|Motherboards: %s|Placas base: %s
+Espaço para fonte: %s|Power supply bay: %s|Espacio para fuente: %s
+Baias: %d × 2,5″ · %d × 3,5″|Bays: %d × 2.5″ · %d × 3.5″|Bahías: %d × 2,5″ · %d × 3,5″
+Suporta %d ventoinha(s)|Supports up to %d fan(s)|Hasta %d ventilador(es)
+Entrega embalada, gabinete vazio.|Ships boxed as an empty case.|Se entrega en caja como gabinete vacío.
+Abra a embalagem antes de transportar o gabinete.|Unbox the case before carrying it.|Abre la caja antes de transportar el gabinete.
+Libere espaço na área de recebimento antes de comprar.|Clear some space in the receiving area before purchasing.|Libera espacio en la zona de recepción antes de comprar.
+F — Montagem de PC↵E — Pegar gabinete|F — PC assembly↵E — Pick up case|F — Montaje de PC↵E — Recoger gabinete
+F — Montagem de PC|F — PC assembly|F — Montaje de PC
+Gabinete|Case|Gabinete
+Oficina|Workshop|Taller
+Gabinete vazio|Empty case|Gabinete vacío
+Montagem em andamento|Build in progress|Montaje en curso
+Iniciar montagem|Start assembly|Iniciar montaje
+Montagem de PC|PC assembly|Montaje de PC
+Abra o gabinete e instale a placa-mãe e o processador da bandeja.|Open the case and install the motherboard and processor from the tray.|Abre el gabinete e instala la placa base y el procesador de la bandeja.
+Instale a placa-mãe e o processador neste gabinete.|Install the motherboard and processor in this case.|Instala la placa base y el procesador en este gabinete.
+Use Iniciar montagem para acessar o interior do gabinete.|Select Start assembly to access the inside of the case.|Pulsa Iniciar montaje para acceder al interior del gabinete.
+Montagem de PC · %s|PC assembly · %s|Montaje de PC · %s
+Voltar à bancada|Back to workbench|Volver al banco de trabajo
+Bandeja da bancada|Workbench tray|Bandeja del banco
+Tampa|Side panel|Panel lateral
+Encaixe da placa-mãe|Motherboard mount|Anclaje de la placa base
+Retirar tampa|Remove panel|Retirar panel
+Parafuso %d · Phillips (2)|Screw %d · Phillips (2)|Tornillo %d · Phillips (2)
+Soquete da CPU e fixação do cooler|CPU socket and cooler mount|Zócalo de CPU y anclaje del disipador
+Slots de memória RAM|RAM slots|Ranuras de memoria RAM
+Slot PCIe para GPU|GPU PCIe slot|Ranura PCIe para GPU
+Compartimento da fonte|Power supply bay|Bahía de la fuente
+Baias de armazenamento|Drive bays|Bahías de almacenamiento
+Solte os quatro parafusos com a Phillips. Depois use as mãos para retirar a tampa.|Loosen all four screws with the Phillips screwdriver, then remove the panel by hand.|Afloja los cuatro tornillos con la Phillips y retira el panel con las manos.
+Traga uma placa-mãe desembalada à bandeja. Pegue-a com as mãos e clique ou arraste até o encaixe.|Bring an unboxed motherboard to the tray. Pick it up by hand, then click or drag it to the mount.|Lleva una placa base desembalada a la bandeja. Recógela con las manos y haz clic o arrástrala al anclaje.
+Use a Phillips para fixar os parafusos da placa-mãe. Para retirar a peça, solte todos e use as mãos.|Use the Phillips screwdriver to fasten the motherboard screws. Loosen them all and use your hands to remove the board.|Fija los tornillos de la placa base con la Phillips. Para retirarla, aflójalos todos y usa las manos.
+Placa-mãe fixada. O PC ainda precisa dos demais componentes essenciais para ligar.|Motherboard secured. The PC needs its remaining essential components before it can power on.|Placa base fijada. El PC aún necesita los demás componentes esenciales para encenderse.
+Placa-mãe selecionada. Use as mãos no encaixe.|Motherboard selected. Use your hands on the mount.|Placa base seleccionada. Usa las manos en el anclaje.
+Selecione Mãos (1) para manusear a tampa.|Select Hands (1) to handle the panel.|Selecciona Manos (1) para manipular el panel.
+Tampa retirada. Pegue uma placa-mãe da bandeja e leve-a ao encaixe.|Panel removed. Pick a motherboard from the tray and move it to the mount.|Panel retirado. Recoge una placa base de la bandeja y llévala al anclaje.
+Traga uma placa-mãe desembalada até a bandeja da bancada.|Bring an unboxed motherboard to the workbench tray.|Lleva una placa base desembalada a la bandeja del banco.
+Formato incompatível: %s. Este gabinete aceita %s.|Incompatible form factor: %s. This case supports %s.|Formato incompatible: %s. Este gabinete admite %s.
+Placa-mãe posicionada. Use a Phillips para fixar os parafusos.|Motherboard seated. Use the Phillips screwdriver to fasten the screws.|Placa base colocada. Usa la Phillips para fijar los tornillos.
+Parafusos da placa-mãe fixados: %d de %d.|Motherboard screws fastened: %d of %d.|Tornillos de la placa base fijados: %d de %d.
+Solte os %d parafuso(s) restantes da placa-mãe.|Loosen the remaining %d motherboard screw(s).|Afloja los %d tornillo(s) restantes de la placa base.
+Libere um espaço na bandeja para retirar a placa-mãe.|Clear a tray slot before removing the motherboard.|Libera un espacio en la bandeja para retirar la placa base.
+Placa-mãe retirada para a bandeja.|Motherboard returned to the tray.|Placa base retirada a la bandeja.
+Nesta etapa da montagem, apenas a placa-mãe pode ser instalada.|This stage of assembly supports motherboard installation.|Esta etapa del montaje admite la instalación de la placa base.
+Nesta etapa da montagem, apenas os parafusos da placa-mãe podem ser operados.|This stage supports working with the motherboard screws.|Esta etapa permite manipular los tornillos de la placa base.
+Conclua a montagem e as conexões dos componentes essenciais antes de ligar o PC.|Install and connect the essential components before powering on the PC.|Monta y conecta los componentes esenciales antes de encender el PC.
+Vender|Sell|Vender
+Receba 90% do valor pago por cada item.|Receive 90% of what you paid for each item.|Recibe el 90 % de lo que pagaste por cada artículo.
+Pesquisar seus itens|Search your items|Buscar tus artículos
+Nenhum item comprado disponível para venda.|No purchased items are available to sell.|No hay artículos comprados disponibles para vender.
+Nenhum item corresponde ao filtro.|No items match the filter.|Ningún artículo coincide con el filtro.
+CONFIRMAR VENDA / TECHMARKET|CONFIRM SALE / TECHMARKET|CONFIRMAR VENTA / TECHMARKET
+Recebe %s pela venda.|You receive %s for this sale.|Recibes %s por la venta.
+Vender %s por %s?|Sell %s for %s?|¿Vender %s por %s?
+Este item não está disponível para venda.|This item is unavailable for sale.|Este artículo no está disponible para la venta.
+Este item já foi vendido.|This item has already been sold.|Este artículo ya se vendió.
+Vendido: %s · %s recebidos.|Sold: %s · received %s.|Vendido: %s · recibiste %s.
+Nas mãos|Carried|En las manos
+Inventário|Inventory|Inventario
+Bancada|Workbench|Banco de trabajo
+Socket do processador|CPU socket|Zócalo del procesador
+Abrir trava do socket|Open socket latch|Abrir cierre del zócalo
+Fechar trava do socket|Close socket latch|Cerrar cierre del zócalo
+Trava do socket aberta.|Socket latch open.|Cierre del zócalo abierto.
+Processador travado no socket.|Processor locked in the socket.|Procesador fijado en el zócalo.
+Processador encaixado. Feche a trava do socket.|Processor seated. Close the socket latch.|Procesador colocado. Cierra el cierre del zócalo.
+Processador retirado para a bandeja.|Processor returned to the tray.|Procesador devuelto a la bandeja.
+Retire o processador antes de retirar a placa-mãe.|Remove the processor before removing the motherboard.|Retira el procesador antes de retirar la placa base.
+Abra a trava do socket antes de retirar o processador.|Open the socket latch before removing the processor.|Abre el cierre del zócalo antes de retirar el procesador.
+Libere um espaço na bandeja para retirar o processador.|Clear a tray slot before removing the processor.|Libera espacio en la bandeja antes de retirar el procesador.
+Traga um processador desembalado até a bandeja da bancada.|Bring an unboxed processor to the workbench tray.|Lleva un procesador desembalado a la bandeja del banco.
+Socket incompatível: o processador usa %s e a placa-mãe usa %s.|Incompatible socket: the processor uses %s and the motherboard uses %s.|Zócalo incompatible: el procesador usa %s y la placa base usa %s.
+Com Mãos (1), selecione ou arraste um processador da bandeja até o socket.|With Hands (1), select a processor or drag it from the tray to the socket.|Con Manos (1), selecciona un procesador o arrástralo de la bandeja al zócalo.
+Clique na trava ao lado do socket para prender o processador.|Click the latch beside the socket to secure the processor.|Pulsa el cierre junto al zócalo para fijar el procesador.
+Processador selecionado. Clique no socket.|Processor selected. Click the socket.|Procesador seleccionado. Pulsa el zócalo.
+Processador travado. Para removê-lo, abra a trava do socket e clique no chip.|Processor locked. To remove it, open the socket latch and click the chip.|Procesador fijado. Para retirarlo, abre el cierre del zócalo y pulsa el chip.
+Use os parafusos da placa-mãe ou a trava do socket nesta montagem.|Use the motherboard screws or the socket latch in this build.|Usa los tornillos de la placa base o el cierre del zócalo en este montaje.
+Nesta etapa da montagem, é possível instalar a placa-mãe e o processador.|This stage supports motherboard and processor installation.|Esta etapa permite instalar la placa base y el procesador.
+A instalação de RAM nesta montagem ainda não está disponível.|RAM installation is still unavailable for this build.|La instalación de RAM aún no está disponible en este montaje.
+Adicionar gabinete|Add case|Añadir gabinete
+Embalado|Boxed|Embalado
+Compre um gabinete na Loja de Peças e aguarde a entrega.|Buy a case from the Parts Shop and wait for delivery.|Compra un gabinete en la Tienda de Piezas y espera la entrega.
+Escolha um gabinete comprado para colocá-lo na bancada.|Choose a purchased case to place on the bench.|Elige un gabinete comprado para colocarlo en el banco.
+Abra a inspeção para escolher um gabinete comprado.|Open inspection to choose a purchased case.|Abre la inspección para elegir un gabinete comprado.
+Este gabinete ainda não está disponível para colocar na bancada.|This case is not available to place on the bench yet.|Este gabinete todavía no está disponible para colocarlo en el banco.
+INSPEÇÃO VISUAL|VISUAL INSPECTION|INSPECCIÓN VISUAL
+INSPEÇÃO VISUAL  /  %s|VISUAL INSPECTION  /  %s|INSPECCIÓN VISUAL  /  %s
+Tampa retirada. Selecione uma peça e clique no encaixe.|Panel removed. Select a part and click its mount.|Panel retirado. Selecciona una pieza y pulsa su anclaje.
+Instale o componente essencial antes de ligar: %s.|Install the required component before powering on: %s.|Instala el componente necesario antes de encender: %s.
+Fixe e reconecte o componente antes de ligar: %s.|Secure and connect the component before powering on: %s.|Fija y conecta el componente antes de encender: %s."""
 
 static func catalog() -> Dictionary:
 	var messages := {"pt": {}, "en": {}, "es": {}}

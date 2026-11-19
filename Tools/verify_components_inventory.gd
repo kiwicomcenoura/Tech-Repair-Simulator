@@ -1,4 +1,6 @@
 ﻿extends SceneTree
+const Prefs := preload("res://Scripts/UI/player_preferences.gd")
+
 var checks := 0
 var failures: Array[String] = []
 var world: Node
@@ -362,7 +364,7 @@ func run() -> void:
 	check(market._buttons.size() == model.CATALOG.size(),"Shop lists every catalog product")
 	var categories: Dictionary = {}
 	for entry in model.CATALOG: categories[entry.kind] = true
-	check(categories.size() == model.PART_NAMES.size(),"All seven component categories have catalog products")
+	check(categories.size() == model.PART_NAMES.size() + 1 and categories.has("case"),"Component and case categories have catalog products")
 	check(not market._buttons.has("cpu") and not market._buttons.has("motherboard"),"Legacy processor and motherboard are absent from the shop")
 	check(market.sidebar.is_ancestor_of(market._categories[""]),"Categories appear inside the TechOS sidebar")
 	await click(market._categories["cpu"])
@@ -415,6 +417,30 @@ func run() -> void:
 		await frames()
 		check(picker.item_count == 5 and picker.selected == 0,"DDR4 %s offers all finishes and defaults to bare RAM" % key)
 		await click(market.confirmation.get_cancel_button())
+	var before_sale: float = model.state.credits
+	check(not model.sell(blue_module) and model.state.credits == before_sale,"An undelivered order cannot be sold")
+	model.tick(3.1)
+	await click(market.find_child("SellItems", true, false))
+	check(market._sale_buttons.has(blue_module) and not market._sale_buttons.has(spare_id) and not market._buttons.DDR4.visible,
+		"Sell mode lists delivered purchases and leaves the unpriced spare out")
+	await click(market._sale_buttons[blue_module])
+	check(market.confirmation.visible and model.state.credits == before_sale,"Sale requires confirmation before crediting")
+	await click(market.confirmation.get_cancel_button())
+	check(model.item(blue_module).location == "floor" and model.state.credits == before_sale,"Cancel keeps the physical item and balance")
+	await click(market._sale_buttons[blue_module])
+	await click(market.confirmation.get_ok_button())
+	check(model.state.credits == before_sale + 220.50 and market._balance.text.ends_with(Prefs.money(before_sale + 220.50)),
+		"Sale credits exactly 90% of the original price including cents")
+	check(model.item(blue_module).location == "sold" and not workshop.actors.has(blue_module) and not market._sale_buttons.has(blue_module),
+		"Sold item disappears from both the workshop and the sale list")
+	check(not model.sell(blue_module) and not model.move(blue_module, "floor") and model.state.credits == before_sale + 220.50,
+		"Sold items cannot return to the workshop or credit a second sale")
+	var tampered: Dictionary = model.state.duplicate(true)
+	tampered.transactions.back().amount += 1
+	tampered.credits += 1
+	check(not model.valid(tampered),"Save validation rejects a sale at the wrong price")
+	await click(market.find_child("SellItems", true, false))
+	check(market._buttons.DDR4.visible and not market._sale_items.visible,"Returning to buy mode restores catalog controls")
 	check(model.valid(model.state),"Expanded save remains valid")
 	var restored: Dictionary = JSON.parse_string(JSON.stringify(model.state))
 	check(model.valid(restored) and restored.items[spare_id].location == "inventory","Serialized save retains inventory, tests and mounts")
@@ -429,6 +455,8 @@ func run() -> void:
 	check(workshop.load_game(),"Existing load API restores expanded save")
 	check(model.item(originals.cpu).model == "Amdera Ryvon 5 5600","CPU from the previous catalog shows its updated model after loading")
 	check(model.item(blue_module).get("heat_spreader_color") == "Azul","Restoring a save retains the selected heat spreader color")
+	check(model.item(blue_module).location == "sold" and not workshop.actors.has(blue_module) and model.state.credits == before_sale + 220.50,
+		"Restore preserves the sale and fractional credits without respawning the item")
 	check(model.item(spare_id).location == "inventory" and model.item(originals.ram).tested,"Restore retains inventory and tested RAM")
 	for kind in ["gpu","storage","psu","cooling","motherboard","cpu"]:
 		var mount: Dictionary = model.mounts(pc_id,kind)
@@ -450,8 +478,9 @@ func verify_platform_catalog() -> void:
 		ledger.new_game(false)
 		check(ledger.purchase(entry.key),"Purchase " + entry.key)
 		var part := ledger.item(ledger.at("delivery")[0])
-		check(part.kind == entry.kind and part.model == entry.model and not part.has("heat_spreader_color"),"Delivery without a selected finish matches " + entry.key)
-		for field in ["socket", "alternate_socket", "ddr", "capacity_gb", "board_art"]:
+		var expected_kind: String = "pc" if entry.kind == "case" else entry.kind
+		check(part.kind == expected_kind and part.model == entry.model and not part.has("heat_spreader_color"),"Delivery without a selected finish matches " + entry.key)
+		for field in ["socket", "alternate_socket", "ddr", "capacity_gb", "board_art", "board_format"]:
 			if entry.has(field): check(part.get(field) == entry[field],"Delivery retains %s for %s" % [field, entry.key])
 		check(ledger.valid(JSON.parse_string(JSON.stringify(ledger.state))),"Save accepts " + entry.key)
 	check(graphics_count == 1,"Catalog retains its single graphics card")
