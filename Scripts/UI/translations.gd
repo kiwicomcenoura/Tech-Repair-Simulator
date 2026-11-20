@@ -116,7 +116,7 @@ Sessão do cliente|Customer session|Sesión del cliente
 Jogador  /  Sessão local|Player  /  Local session|Jugador  /  Sesión local
 ▦  Iniciar|▦  Start|▦  Inicio
 Dia %02d · local|Day %02d · local|Día %02d · local
-Mensagens|Messages|Mensajes
+Email|Email|Correo
 Clientes|Customers|Clientes
 Loja de Peças|Parts Store|Tienda de piezas
 Finanças|Finances|Finanzas
@@ -478,7 +478,28 @@ Nenhuma análise foi executada. Os problemas identificados serão exibidos aqui,
 Temperatura, estabilidade e funcionamento serão apresentados somente após a execução dos testes.|Temperature, stability, and operation appear after running tests.|La temperatura, la estabilidad y el funcionamiento aparecen tras las pruebas.
 INICIALIZANDO|STARTING|INICIANDO
 LIGADO|ON|ENCENDIDO
-Nenhuma conversa|No conversations|Ninguna conversación
+Caixa de entrada|Inbox|Bandeja de entrada
+Converse com os contatos da oficina.|Talk to your workshop contacts.|Habla con los contactos del taller.
+Escrever email|Compose email|Redactar correo
+Buscar conversas|Search conversations|Buscar conversaciones
+Nenhuma conversa encontrada.|No conversations found.|No se encontraron conversaciones.
+Todas as conversas|All conversations|Todas las conversaciones
+Não lidas|Unread|Sin leer
+Enviadas|Sent|Enviadas
+Assunto|Subject|Asunto
+Enviar|Send|Enviar
+Você|You|Tú
+Novo email|New email|Correo nuevo
+Escreva sua mensagem…|Write your message…|Escribe tu mensaje…
+Escreva sua resposta…|Write your reply…|Escribe tu respuesta…
+Selecione uma conversa ou escreva para um contato da oficina.|Select a conversation or write to a workshop contact.|Selecciona una conversación o escribe a un contacto del taller.
+Para: escolha um contato|To: select a contact|Para: selecciona un contacto
+Aguardando resposta…|Waiting for a reply…|Esperando una respuesta…
+Limite de %d caracteres.|Limit of %d characters.|Límite de %d caracteres.
+Escolha um contato.|Choose a contact.|Elige un contacto.
+Escreva um assunto de até %d caracteres.|Write a subject of up to %d characters.|Escribe un asunto de hasta %d caracteres.
+Escreva uma mensagem de até %d caracteres.|Write a message of up to %d characters.|Escribe un mensaje de hasta %d caracteres.
+A conversa não está mais disponível.|The conversation is no longer available.|La conversación ya no está disponible.
 Nenhuma campanha|No campaigns|Ninguna campaña
 Conclua um serviço: a fila aceita até três pedidos ativos.|Finish a job first. The queue holds up to three active jobs.|Termina un trabajo primero. La cola admite hasta tres trabajos activos.
 %s movido para o início da fila.|%s moved to the front of the queue.|%s pasó al inicio de la cola.
@@ -574,6 +595,7 @@ ATX Aquário|ATX Aquarium|ATX Acuario
 Grafite|Graphite|Grafito
 Preto e vermelho|Black and red|Negro y rojo
 Tampa de vidro|Glass side panel|Panel lateral de vidrio
+Iluminação RGB|RGB lighting|Iluminación RGB
 Tampa de aço|Steel side panel|Panel lateral de acero
 Acabamento: %s · %s|Finish: %s · %s|Acabado: %s · %s
 Placas-mãe: %s|Motherboards: %s|Placas base: %s
@@ -666,7 +688,67 @@ INSPEÇÃO VISUAL|VISUAL INSPECTION|INSPECCIÓN VISUAL
 INSPEÇÃO VISUAL  /  %s|VISUAL INSPECTION  /  %s|INSPECCIÓN VISUAL  /  %s
 Tampa retirada. Selecione uma peça e clique no encaixe.|Panel removed. Select a part and click its mount.|Panel retirado. Selecciona una pieza y pulsa su anclaje.
 Instale o componente essencial antes de ligar: %s.|Install the required component before powering on: %s.|Instala el componente necesario antes de encender: %s.
-Fixe e reconecte o componente antes de ligar: %s.|Secure and connect the component before powering on: %s.|Fija y conecta el componente antes de encender: %s."""
+Fixe e reconecte o componente antes de ligar: %s.|Secure and connect the component before powering on: %s.|Fija y conecta el componente antes de encender: %s.
+Instalador TechOS|TechOS Installer|Instalador de TechOS
+Pendrive de instalação|Installation USB drive|Memoria USB de instalación
+Pendrive pronto|USB drive is ready|Memoria USB lista
+Prepare o pendrive reutilizável da oficina para instalar o TechOS em um SSD na bancada.|Prepare the workshop's reusable USB drive to install TechOS on a workbench SSD.|Prepara la memoria USB reutilizable del taller para instalar TechOS en un SSD en el banco.
+Criar pendrive de instalação|Create installation USB|Crear memoria USB de instalación
+Na inspeção da bancada, conecte o pendrive ao PC e abra o monitor depois do POST.|In the workbench inspection, connect the USB drive and open the monitor after POST.|En la inspección del banco, conecta la memoria USB y abre el monitor después del POST.
+Abrir monitor|Open monitor|Abrir monitor
+Ligue o PC para acessar o monitor.|Power on the PC to open the monitor.|Enciende el PC para abrir el monitor.
+MONITOR DA BANCADA|WORKBENCH MONITOR|MONITOR DEL BANCO
+Conectar pendrive|Connect USB drive|Conectar memoria USB
+Retirar pendrive|Remove USB drive|Retirar memoria USB
+Conectar USB|Connect USB|Conectar USB
+Retirar USB|Remove USB|Retirar USB
+PEÇAS · ARMÁRIO E BANCADA|PARTS · CABINET AND BENCH|PIEZAS · ARMARIO Y BANCO
+Nenhuma peça disponível|No parts available|No hay piezas disponibles
+Desembalar peça|Unpack part|Desembalar pieza
+Desembale a peça do armário para instalar.|Unpack the cabinet part before installing it.|Desembala la pieza del armario antes de instalarla.
+Embalagem aberta. A peça do armário pode ser instalada pela bancada.|Package opened. The cabinet part is ready to install from the workbench.|Embalaje abierto. La pieza del armario se puede instalar desde el banco.
+Selecione uma RAM desembalada na lista de peças da bancada.|Select an unpacked RAM module from the workbench parts list.|Selecciona una memoria RAM desembalada en la lista de piezas del banco.
+Leve a RAM até a bancada e pressione F. Ela já aparece na lista de peças.|Take the RAM to the workbench and press F. It is already in the parts list.|Lleva la RAM al banco y pulsa F. Ya aparece en la lista de piezas.
+Clique em Desembalar peça para liberar a RAM DDR4 do armário.|Select Unpack part to use the DDR4 RAM from the cabinet.|Pulsa Desembalar pieza para usar la RAM DDR4 del armario.
+Em Peças, selecione a RAM DDR4. Com Mãos (1), clique no slot A1 vazio.|In Parts, select the DDR4 RAM. With Hands (1), click the empty A1 slot.|En Piezas, selecciona la RAM DDR4. Con Manos (1), pulsa la ranura A1 vacía.
+Iniciar pelo pendrive|Boot from USB drive|Arrancar desde la memoria USB
+Conecte o pendrive e conclua o POST.|Connect the USB drive and finish POST.|Conecta la memoria USB y completa el POST.
+Prepare o pendrive no Instalador TechOS do computador da oficina.|Prepare the USB drive in TechOS Installer on the workshop computer.|Prepara la memoria USB en el Instalador de TechOS del ordenador del taller.
+Selecione o SSD|Select an SSD|Selecciona el SSD
+Sistema instalado|System installed|Sistema instalado
+Sem sistema|No system installed|Sin sistema instalado
+Instalar TechOS|Install TechOS|Instalar TechOS
+Confirmar instalação|Confirm installation|Confirmar instalación
+Instalando TechOS|Installing TechOS|Instalando TechOS
+Instalação concluída|Installation complete|Instalación completada
+Selecione o SSD em que o TechOS será instalado.|Select the SSD where TechOS will be installed.|Selecciona el SSD donde se instalará TechOS.
+Substituir o sistema e apagar os aplicativos em %s?|Replace the system and erase the apps on %s?|¿Reemplazar el sistema y borrar las aplicaciones de %s?
+Instalar o TechOS em %s?|Install TechOS on %s?|¿Instalar TechOS en %s?
+Copiando o sistema para %s. Mantenha o computador ligado.|Copying the system to %s. Keep the computer powered on.|Copiando el sistema a %s. Mantén el equipo encendido.
+Retire o pendrive para iniciar pelo SSD.|Remove the USB drive to boot from the SSD.|Retira la memoria USB para arrancar desde el SSD.
+Pronto para iniciar o TechOS pelo SSD.|Ready to boot TechOS from the SSD.|Listo para arrancar TechOS desde el SSD.
+Selecione o disco|Select a disk|Selecciona el disco
+Selecione o disco em que o TechOS será instalado.|Select the drive on which TechOS will be installed.|Selecciona el disco donde se instalará TechOS.
+Retire o pendrive para iniciar pelo disco.|Remove the USB drive to boot from the disk.|Retira la memoria USB para arrancar desde el disco.
+Pronto para iniciar o TechOS pelo disco.|Ready to boot TechOS from the disk.|Listo para arrancar TechOS desde el disco.
+Reiniciar pelo disco|Restart from disk|Reiniciar desde el disco
+Instalando o TechOS no disco…|Installing TechOS on the disk…|Instalando TechOS en el disco…
+A instalação foi interrompida. Verifique o disco e os componentes.|Installation stopped. Check the disk and components.|La instalación se interrumpió. Comprueba el disco y los componentes.
+TechOS instalado. Reinicie pelo disco.|TechOS installed. Restart from the disk.|TechOS instalado. Reinicia desde el disco.
+TechOS instalado. Retire o pendrive e reinicie pelo disco.|TechOS installed. Remove the USB drive and restart from the disk.|TechOS instalado. Retira la memoria USB y reinicia desde el disco.
+Instalação interrompida. O conteúdo do disco foi preservado.|Installation interrupted. The disk content was preserved.|Instalación interrumpida. Se conservó el contenido del disco.
+Armazenamento · SATA 2|Storage · SATA 2|Almacenamiento · SATA 2
+Reconhecido|Recognized|Reconocido
+Sem energia SATA|No SATA power|Sin alimentación SATA
+Sem dados SATA|No SATA data|Sin datos SATA
+Solto na baia|Loose in the bay|Suelto en la bahía
+Não reconhecido|Not recognized|No reconocido
+Reiniciar pelo SSD|Restart from SSD|Reiniciar desde el SSD
+Instalador do TechOS iniciado pelo pendrive.|TechOS installer booted from the USB drive.|El instalador de TechOS arrancó desde la memoria USB.
+Instalando o TechOS no SSD…|Installing TechOS on the SSD…|Instalando TechOS en el SSD…
+TechOS instalado. Retire o pendrive e reinicie pelo SSD.|TechOS installed. Remove the USB drive and restart from the SSD.|TechOS instalado. Retira la memoria USB y reinicia desde el SSD.
+TechOS instalado. Reinicie pelo SSD.|TechOS installed. Restart from the SSD.|TechOS instalado. Reinicia desde el SSD.
+Instalação interrompida. O conteúdo do SSD foi preservado.|Installation interrupted. The SSD content was preserved.|Instalación interrumpida. Se conservó el contenido del SSD."""
 
 static func catalog() -> Dictionary:
 	var messages := {"pt": {}, "en": {}, "es": {}}

@@ -9,6 +9,7 @@ const STATUS := {
 	"post": "Inicialização",
 	"firmware": "Sinal ativo · Verifique o POST",
 	"desktop": "Imagem estável",
+	"installer": "Instalador TechOS",
 	"pattern": "Teste de vídeo em andamento",
 	"artifacts": "Anomalias · Sinal intermitente",
 }
@@ -51,6 +52,9 @@ static func paint(canvas: CanvasItem, state: String, seconds: float) -> void:
 			canvas.draw_rect(Rect2(i * 22, 66, 22, 21), Color(gray, gray, gray))
 		return
 	var font := ThemeDB.fallback_font
+	if state == "installer":
+		canvas.draw_string(font, Vector2(9, 27), Prefs.t("Instalador TechOS"), HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("a0d7d0"))
+		return
 	if state in ["post", "firmware"]:
 		canvas.draw_string(font, Vector2(9, 22), "OFICINA BIOS", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("a0d7d0"))
 		canvas.draw_string(font, Vector2(9, 42), Prefs.t("POST em execução" if state == "post" else "Consulte o diagnóstico"), HORIZONTAL_ALIGNMENT_LEFT, -1, 10, Color("98aebd"))

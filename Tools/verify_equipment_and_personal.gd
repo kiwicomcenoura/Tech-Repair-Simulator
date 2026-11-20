@@ -115,7 +115,7 @@ func run() -> void:
 	await frames()
 	check(personal_ui.get_node("%DesktopScreen").visible, "Reopen powered computer at desktop")
 	var desktop: Control = personal_ui.get_node("%DesktopScreen")
-	check(desktop.launchers.size() == 6, "Six TechOS application shortcuts")
+	check(desktop.launchers.size() == 7 and desktop.launchers.has("installer"), "TechOS shortcuts include the USB installer")
 	check(desktop.windows.is_empty(), "No fake application content created at startup")
 	for app in desktop.launchers.values():
 		check(not app.disabled, "App shell can open: " + str(app.name))

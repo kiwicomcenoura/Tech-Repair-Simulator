@@ -375,9 +375,9 @@ func run() -> void:
 	check(market.preview.texture != null and "TR Vision" in market.preview_name.text,"Hover shows image and product details")
 	market._buttons.amdera_ax550.mouse_entered.emit()
 	var amdera_preview: Texture2D = market.preview.texture
-	check("AX4" in market.preview_name.text and "DDR4" in market.preview_name.text,"Amdera preview shows socket and memory generation")
+	check("AM4" in market.preview_name.text and "DDR4" in market.preview_name.text,"Amdera preview shows socket and memory generation")
 	market._buttons.intara_ix610.mouse_entered.emit()
-	check(market.preview.texture != amdera_preview and "IX1700" in market.preview_name.text and "DDR5" in market.preview_name.text,"Intara has its own preview and platform specs")
+	check(market.preview.texture != amdera_preview and "LGA1700" in market.preview_name.text and "DDR4" in market.preview_name.text,"Intara has its own preview and platform specs")
 	await capture("market")
 	var credits: int = model.state.credits
 	await click(market._buttons.DDR4)
@@ -476,14 +476,20 @@ func verify_platform_catalog() -> void:
 	for entry in ledger.CATALOG:
 		if entry.kind == "gpu": graphics_count += 1
 		ledger.new_game(false)
-		check(ledger.purchase(entry.key),"Purchase " + entry.key)
+		if entry.price > 500:
+			check(not ledger.purchase(entry.key), "Starting balance rejects " + entry.key)
+			ledger.state.balance_adjustment = entry.price - 500
+			ledger.state.credits = entry.price
+		var purchased_ok := ledger.purchase(entry.key)
+		check(purchased_ok,"Purchase " + entry.key)
+		if not purchased_ok: continue
 		var part := ledger.item(ledger.at("delivery")[0])
 		var expected_kind: String = "pc" if entry.kind == "case" else entry.kind
 		check(part.kind == expected_kind and part.model == entry.model and not part.has("heat_spreader_color"),"Delivery without a selected finish matches " + entry.key)
 		for field in ["socket", "alternate_socket", "ddr", "capacity_gb", "board_art", "board_format"]:
 			if entry.has(field): check(part.get(field) == entry[field],"Delivery retains %s for %s" % [field, entry.key])
 		check(ledger.valid(JSON.parse_string(JSON.stringify(ledger.state))),"Save accepts " + entry.key)
-	check(graphics_count == 1,"Catalog retains its single graphics card")
+	check(graphics_count == 33,"Catalog retains the original GPU and adds all 32 models")
 	ledger.new_game(false)
 	check(not ledger.purchase("ddr5_16", "Verde") and not ledger.purchase("DDR4", "Azul"),"Invalid colors and unsupported modules are rejected")
 	check(ledger.state.credits == 500 and ledger.at("delivery").is_empty(),"Rejected finishes leave the balance and deliveries intact")

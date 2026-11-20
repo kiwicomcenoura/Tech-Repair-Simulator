@@ -1,8 +1,10 @@
 extends Node2D
 
 const Screen := preload("res://Scripts/UI/bench_video_screen.gd")
-const SCREEN_ORIGIN := Vector2(-20, -161)
-const SCREEN_PROJECTION := Transform2D(Vector2(0.42, 0.21), Vector2(0, 0.42), SCREEN_ORIGIN)
+const SCREEN_PROJECTION := Transform2D(Vector2(0.45, 0.225), Vector2(0, 0.45), Vector2(-18, -166))
+const FRAME := Rect2(-5, -6, 170, 102)
+const SHELL_DEPTH := Vector2(4, -2)
+const KEYBOARD_PROJECTION := Transform2D(Vector2(1, 0.5), Vector2(-1, 0.5), Vector2(-4, -101))
 
 var status := "off":
 	set(value):
@@ -30,21 +32,49 @@ func _draw() -> void:
 	tray.append(tray[0])
 	draw_polyline(tray, Color("59686c"), 1.5, true)
 	draw_line(Vector2(-122,-136), Vector2(-109,-129.5), Color("35484b"), 1.0, true)
-	# The stand and keyboard share the perspective of the tabletop.
-	draw_colored_polygon(PackedVector2Array([Vector2(17,-99),Vector2(35,-90),Vector2(19,-82),Vector2(1,-91)]), Color("19262d"))
-	draw_line(Vector2(18,-101), Vector2(18,-91), Color("526670"), 5)
-	draw_colored_polygon(PackedVector2Array([Vector2(-3,-97),Vector2(23,-84),Vector2(11,-78),Vector2(-15,-91)]), Color("212c33"))
-	for row in range(2):
-		for key in range(7):
-			var start := Vector2(-4 + key * 3.1 - row * 4, -95.5 + key * 1.55 + row * 2)
-			draw_line(start, start + Vector2(2,1), Color("67808d"), 1, true)
-	# Rear shell, bezel and indicator sit around the shared signal renderer.
+	_draw_monitor_stand()
+	_draw_monitor()
+	_draw_keyboard()
+
+
+func _draw_monitor_stand() -> void:
+	draw_colored_polygon(PackedVector2Array([Vector2(15,-100), Vector2(38,-89), Vector2(20,-80), Vector2(-3,-91)]), Color(0.03, 0.07, 0.10, 0.34))
+	draw_colored_polygon(PackedVector2Array([Vector2(14,-99), Vector2(32,-90), Vector2(17,-82.5), Vector2(-1,-91.5)]), Color("23313b"))
+	draw_polyline(PackedVector2Array([Vector2(-1,-91.5), Vector2(17,-82.5), Vector2(32,-90)]), Color("101a22"), 1.6)
+	draw_colored_polygon(PackedVector2Array([Vector2(13,-108), Vector2(19,-105), Vector2(19,-91), Vector2(13,-94)]), Color("445763"))
+	draw_colored_polygon(PackedVector2Array([Vector2(19,-105), Vector2(22,-106.5), Vector2(22,-92.5), Vector2(19,-91)]), Color("243440"))
+
+
+func _draw_monitor() -> void:
+	var top_left := SCREEN_PROJECTION * FRAME.position
+	var top_right := SCREEN_PROJECTION * Vector2(FRAME.end.x, FRAME.position.y)
+	var bottom_right := SCREEN_PROJECTION * FRAME.end
+	draw_colored_polygon(PackedVector2Array([top_left, top_left + SHELL_DEPTH, top_right + SHELL_DEPTH, top_right]), Color("586773"))
+	draw_colored_polygon(PackedVector2Array([top_right, top_right + SHELL_DEPTH, bottom_right + SHELL_DEPTH, bottom_right]), Color("283742"))
 	draw_set_transform_matrix(SCREEN_PROJECTION)
-	draw_rect(Rect2(-6, -9, 175, 107), Color("34444b"))
-	draw_rect(Rect2(-8, -5, 174, 104), Color("101a21"))
-	draw_rect(Rect2(-7, -5, 172, 3), Color("52636a"))
+	draw_rect(FRAME, Color("17232d"))
+	draw_rect(Rect2(-5, -6, 170, 2), Color("6b7c85"))
+	draw_rect(Rect2(-5, -4, 2, 98), Color("465862"))
+	draw_rect(Rect2(-3, -3, 166, 96), Color("080e16"))
 	Screen.paint(self, status, float(Time.get_ticks_msec()) / 1000.0)
+	if status in ["off", "sync", "no_signal"]:
+		draw_colored_polygon(PackedVector2Array([Vector2(0, 0), Vector2(7, 0), Vector2(35, 90), Vector2(27, 90)]), Color(0.16, 0.24, 0.30, 0.16))
+	draw_rect(Rect2(-5, 94, 170, 2), Color("30424f"))
 	var led := Color("56616c")
 	if status in ["sync", "no_signal"]: led = Color("b18452")
 	elif status != "off": led = Color("76c9b4")
-	draw_rect(Rect2(149, 93, 6, 2), led)
+	draw_rect(Rect2(151, 92, 4, 2), led)
+	draw_set_transform(Vector2.ZERO)
+
+
+func _draw_keyboard() -> void:
+	draw_set_transform_matrix(KEYBOARD_PROJECTION)
+	draw_rect(Rect2(2, 1, 29, 12), Color(0.03, 0.07, 0.10, 0.38))
+	draw_rect(Rect2(0, 0, 29, 11), Color("23313b"))
+	draw_rect(Rect2(1, 0, 27, 1), Color("5a6e78"))
+	for row in range(2):
+		for col in range(8):
+			draw_rect(Rect2(2 + col * 3, 2 + row * 2.5, 2, 1.5), Color("58707c"))
+	draw_rect(Rect2(8, 7, 11, 1.5), Color("68818a"))
+	draw_rect(Rect2(22, 7, 4, 1.5), Color("4e6572"))
+	draw_set_transform(Vector2.ZERO)

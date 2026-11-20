@@ -97,7 +97,8 @@ func run() -> void:
 	await create_timer(0.35, true).timeout
 	await frames()
 	check(model.power_state == 2 and os.running and os.is_visible_in_tree(), "Boot enters TechOS")
-	check(os.launchers.size() == 6 and os.menu_launchers.size() == 6, "Six desktop and Start shortcuts")
+	check(os.launchers.size() == 7 and os.menu_launchers.size() == 7, "Seven desktop and Start shortcuts include the installer")
+	check(os.launchers.messages.tooltip_text == "Email" and os.menu_launchers.messages.tooltip_text == "Email", "Desktop and Start menu expose the Email name")
 	check(os.windows.is_empty(), "Desktop starts without forced apps")
 	check(not dock.has_equipment(), "OS does not populate repair bench")
 	await capture("desktop")
@@ -111,7 +112,7 @@ func run() -> void:
 	check(os.windows.has("messages"), "Start menu opens application")
 	check(not menu.visible, "Launching app closes Start menu")
 	var messages: Control = os.windows.messages
-	check(messages.get_node("%EmptyTitle").text == "Nenhuma conversa", "Honest empty app state")
+	check(messages.get_node("%AppTitle").text == "Email" and messages.find_child("EmailThreads", true, false).get_child_count() > 0, "Email window opens the workshop inbox")
 	var original_id := messages.get_instance_id()
 	await click(os.launchers.messages)
 	check(os.windows.size() == 1 and os.windows.messages.get_instance_id() == original_id, "Repeated launch focuses one instance")
@@ -157,7 +158,7 @@ func run() -> void:
 	for id in os.APPS:
 		os.open_app(id)
 	await frames()
-	check(os.windows.size() == 6 and os.task_buttons.size() == 6, "All six apps can coexist")
+	check(os.windows.size() == 7 and os.task_buttons.size() == 7, "All seven workshop apps can coexist")
 	for id in os.windows:
 		var window: Control = os.windows[id]
 		check(Rect2(Vector2.ZERO, area.size).encloses(Rect2(window.position, window.size)), "Window stays in work area: " + id)
@@ -177,7 +178,7 @@ func run() -> void:
 	check(not ui.is_open and not paused and model.power_state == 2, "Return to game leaves PC on")
 	ui.open_computer()
 	await frames()
-	check(os.windows.size() == 6, "Returning to powered desktop keeps windows")
+	check(os.windows.size() == 7, "Returning to powered desktop keeps windows")
 	await click(os.get_node("%TaskPower"))
 	check(model.power_state == 0 and not ui.is_open and not paused, "Shutdown closes interface and restores character control")
 	check(os.windows.is_empty() and os.task_buttons.is_empty(), "Shutdown closes all apps")

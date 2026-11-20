@@ -192,8 +192,11 @@ static func signature(ledger: RefCounted, pc: Dictionary) -> String:
 		parts.append([key, part.get("id"), part.get("health")])
 		# Materialize default mounts before taking evidence, so opening a test
 		# panel later cannot invalidate a successful POST by lazy initialization.
-		if key != "ram2": ledger.mounts(pc.id, key)
-	return JSON.stringify([parts, pc.get("mounts", {}), pc.latches, pc.get("ram2_latches", [true, true])])
+		if key not in ["ram2", "ram3", "ram4"]: ledger.mounts(pc.id, key)
+	var evidence := [parts, pc.get("mounts", {}), pc.latches, pc.get("ram2_latches", [true, true])]
+	if pc.has("ram3_latches") or pc.has("ram4_latches"):
+		evidence.append([pc.get("ram3_latches", [true, true]), pc.get("ram4_latches", [true, true])])
+	return JSON.stringify(evidence)
 
 static func post_verified(ledger: RefCounted, pc: Dictionary) -> bool:
 	var result: String = pc.get("service_post", "")

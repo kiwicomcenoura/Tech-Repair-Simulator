@@ -82,7 +82,7 @@ func _process(_delta: float) -> void:
 			var original_in_slot: bool = installed.get("id", "") == order.originals.get("ram")
 			var diagnosed: bool = not original_in_slot or installed.tested
 			var replacement := _find_replacement(order) if not replaced and diagnosed else {}
-			if diagnosed and not replaced and not pc.power and replacement.get("location", "") not in ["tray", "inventory", "carried"]:
+			if diagnosed and not replaced and not pc.power and replacement.get("location", "") not in model.BENCH_PART_LOCATIONS:
 				world_text = _supply_step(replacement)
 				bench_text = "Feche a bancada para buscar uma RAM DDR4 de reposição."
 				if replacement.is_empty():
@@ -93,7 +93,7 @@ func _process(_delta: float) -> void:
 				_target = _bench_marker()
 				world_text = "Aproxime-se da bancada e pressione F para abrir a manutenção."
 				if replacement.get("location") == "carried":
-					world_text = "Leve a RAM até a bancada e pressione E para colocá-la na bandeja. Depois pressione F."
+					world_text = "Leve a RAM até a bancada e pressione F. Ela já aparece na lista de peças."
 				bench_text = _inspection_step(pc, installed, replacement, diagnosed, replaced)
 				if not bench.inspection.visible:
 					bench_text = "Clique em Inspecionar para continuar o conserto do PC."
@@ -127,12 +127,13 @@ func _transport_step(pc: Dictionary, ready_to_return: bool) -> String:
 
 
 func _find_replacement(order: Dictionary) -> Dictionary:
-	var locations := ["inventory", "tray", "carried", "floor", "delivery", "shelf"]
+	var locations := ["inventory", "tray", "carried", "shelf", "floor", "delivery"]
 	var closest := locations.size()
 	var replacement := {}
 	for item in model.state.items.values():
 		if item.kind != "ram" or item.get("ddr") != "DDR4" or not Orders.valid_replacement(order, "ram", item):
 			continue
+		if item.packaged and item.location in ["inventory", "tray", "carried"]: continue
 		var rank := locations.find(item.location)
 		if rank >= 0 and rank < closest:
 			replacement = item
@@ -149,9 +150,6 @@ func _supply_step(replacement: Dictionary) -> String:
 		"delivery":
 			_target = Vector2(replacement.position[0], replacement.position[1] - 46)
 			return "A RAM DDR4 foi comprada. Aguarde a caixa chegar à área de recebimento."
-		"shelf":
-			_target = workshop.actor_parent.get_node("Shelf").global_position + Vector2(36, -75)
-			return "Vá ao armário, pressione F e mova a RAM DDR4 do armário para o inventário."
 		_:
 			_target = computer.global_position + Vector2(0, -83)
 			return "Pressione F no computador da oficina. Ligue-o e compre RAM DDR4 em Loja de Peças."
@@ -171,8 +169,10 @@ func _inspection_step(pc: Dictionary, installed: Dictionary, replacement: Dictio
 		if replaced or not diagnosed: return "Selecione Mãos (1) e feche as duas travas do slot A1, ao lado do cooler."
 		if true in pc.latches: return "Selecione Mãos (1) e abra as duas travas do slot A1, ao lado do cooler."
 		if not installed.is_empty(): return "Com Mãos (1), clique no módulo A1 para retirar a RAM defeituosa."
+		if replacement.get("packaged", false) and workshop.selected_part == replacement.get("id"):
+			return "Clique em Desembalar peça para liberar a RAM DDR4 do armário."
 		if workshop.selected_ram != replacement.get("id"):
-			return "Role a coluna Ferramentas até Peças e selecione a RAM DDR4. Com Mãos (1), clique no slot A1 vazio."
+			return "Em Peças, selecione a RAM DDR4. Com Mãos (1), clique no slot A1 vazio."
 		return "Com Mãos (1), clique no slot A1 vazio para instalar a RAM selecionada."
 	if not Orders.post_verified(model, pc):
 		if not pc.power: return "Clique em Ligar PC e confirme que o POST agora passa com a nova RAM."

@@ -4,11 +4,18 @@ extends RefCounted
 
 signal changed
 signal feedback(text: String, failed: bool)
+signal mail_changed
 
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const Audio := preload("res://Scripts/Gameplay/workshop_audio.gd")
 const Orders := preload("res://Scripts/Gameplay/service_orders.gd")
+const Mail := preload("res://Scripts/Gameplay/workshop_mail.gd")
 const Cases := preload("res://Scripts/Equipment/case_catalog.gd")
+const Hardware := preload("res://Scripts/Equipment/hardware_catalog.gd")
+const Peripherals := preload("res://Scripts/Equipment/peripheral_catalog.gd")
+const ClientApps := preload("res://Scripts/TechOS/client_apps.gd")
+const INSTALL_DURATION := 4.0
+const NO_BOOT_SYSTEM := "POST concluído, mas nenhum sistema inicializável foi encontrado."
 const PHYSICAL_LOCATIONS := ["floor", "carried", "shelf", "tray", "bench", "counter", "delivery", "installed", "inventory", "returned", "sold"]
 const SELLABLE_LOCATIONS := ["floor", "carried", "shelf", "tray", "bench", "inventory"]
 const RESALE_CENTS_PER_CREDIT := 90
@@ -19,10 +26,12 @@ const SHELF_EXPANSIONS := [
 	{"id": "shelf_24", "capacity": 24, "deliveries": Orders.ADVANCED_DELIVERIES, "price": 600},
 ]
 const INVENTORY_CAPACITY := 3
+const BENCH_PART_LOCATIONS := ["shelf", "inventory", "tray", "carried"]
 const PART_NAMES := {"cpu": "Processador", "cooling": "Refrigeração", "motherboard": "Placa-mãe", "ram": "Memória RAM", "gpu": "Placa de vídeo", "storage": "Armazenamento", "psu": "Fonte"}
-const ESSENTIAL_PARTS := ["motherboard", "cpu", "psu", "cooling", "gpu", "storage"]
-const FASTENERS := {"cpu": 0, "ram": 0, "gpu": 2, "storage": 4, "psu": 4, "cooling": 4, "motherboard": 6}
-const CONNECTIONS := {"cpu": ["socket"], "ram": [], "gpu": ["energia", "trava PCIe"], "storage": ["SATA dados", "SATA energia"], "psu": ["chicote de energia"], "cooling": ["CPU FAN"], "motherboard": ["ATX 24 pinos", "EPS CPU", "painel frontal"]}
+const STORAGE_SLOTS := ["storage", "storage2"]
+const ESSENTIAL_PARTS := ["motherboard", "cpu", "psu", "cooling", "storage"]
+const FASTENERS := {"cpu": 0, "ram": 0, "gpu": 2, "storage": 4, "storage2": 4, "psu": 4, "cooling": 4, "motherboard": 6}
+const CONNECTIONS := {"cpu": ["socket"], "ram": [], "gpu": ["energia", "trava PCIe"], "storage": ["SATA dados", "SATA energia"], "storage2": ["SATA dados", "SATA energia"], "psu": ["chicote de energia"], "cooling": ["CPU FAN"], "motherboard": ["ATX 24 pinos", "EPS CPU", "painel frontal"]}
 const HEAT_SPREADERS := {"Preto": Color("313943"), "Branco": Color("c9d0d8"), "Azul": Color("2865b0"), "Vermelho": Color("aa333a")}
 const RYVON_3_MODEL := "Amdera Ryvon 3 3200"
 const RYVON_5_MODEL := "Amdera Ryvon 5 5600"
@@ -45,30 +54,35 @@ const CPU_MODEL_UPDATES := {
 const CATALOG := [
 	{"key": "DDR4", "kind": "ram", "model": "TR Memory 8 GB DDR4", "price": 150, "ddr": "DDR4"},
 	{"key": "DDR5", "kind": "ram", "model": "TR Memory 8 GB DDR5", "price": 180, "ddr": "DDR5"},
-	{"key": "gpu", "kind": "gpu", "model": "TR Vision 2 · PCIe", "price": 250},
+	{"key": "ddr3_4", "kind": "ram", "model": "TR Memory 4 GB DDR3", "price": 65, "ddr": "DDR3", "capacity_gb": 4, "speed_mt": 1333},
+	{"key": "ddr3_8", "kind": "ram", "model": "TR Memory 8 GB DDR3", "price": 95, "ddr": "DDR3", "capacity_gb": 8},
+	{"key": "gpu", "kind": "gpu", "model": "TR Vision 2 · PCIe", "price": 250, "size_mm": 155},
 	{"key": "storage", "kind": "storage", "model": "TR SATA 240 GB · sem sistema", "price": 100},
-	{"key": "psu", "kind": "psu", "model": "TR Power 450 W · ATX", "price": 160},
-	{"key": "cooling", "kind": "cooling", "model": "TR Air 90 · 90 mm", "price": 80, "socket": "TR4", "alternate_socket": "AX4"},
-	{"key": "amdera_ax550", "kind": "motherboard", "model": "Amdera AX550 · ATX", "price": 290, "socket": "AX4", "ddr": "DDR4", "board_art": "amdera", "board_format": "ATX"},
-	{"key": "intara_ix610", "kind": "motherboard", "model": "Intara IX610 · micro-ATX", "price": 310, "socket": "IX1700", "ddr": "DDR5", "board_art": "intara", "board_format": "micro-ATX"},
+	{"key": "psu", "kind": "psu", "model": "TR Power 450 W · ATX", "price": 160, "size_mm": 140},
+	{"key": "cooling", "kind": "cooling", "model": "TR Air 90 · 90 mm", "price": 80, "socket": "TR4", "alternate_socket": "AX4", "size_mm": 94},
 	{"key": "amdera_ryvon_3", "kind": "cpu", "model": RYVON_3_MODEL, "price": 185, "socket": "AX4"},
 	{"key": "amdera_ryvon_5", "kind": "cpu", "model": RYVON_5_MODEL, "price": 250, "socket": "AX4"},
 	{"key": "amdera_ryvon_7", "kind": "cpu", "model": RYVON_7_MODEL, "price": 380, "socket": "AX4"},
 	{"key": "intara_coren_i3", "kind": "cpu", "model": COREN_I3_MODEL, "price": 210, "socket": "IX1700"},
 	{"key": "intara_coren_i5", "kind": "cpu", "model": COREN_I5_MODEL, "price": 340, "socket": "IX1700"},
 	{"key": "intara_coren_i7", "kind": "cpu", "model": COREN_I7_MODEL, "price": 460, "socket": "IX1700"},
-	{"key": "ddr4_16", "kind": "ram", "model": "TR Memory 16 GB DDR4", "price": 205, "ddr": "DDR4", "capacity_gb": 16, "heat_spreader": true},
+	{"key": "ddr4_16", "kind": "ram", "model": "TR Memory 16 GB DDR4", "price": 205, "ddr": "DDR4", "capacity_gb": 16, "speed_mt": 2666, "heat_spreader": true},
 	{"key": "ddr4_32", "kind": "ram", "model": "TR Memory 32 GB DDR4", "price": 295, "ddr": "DDR4", "capacity_gb": 32, "heat_spreader": true},
 	{"key": "ddr5_16", "kind": "ram", "model": "TR Memory 16 GB DDR5", "price": 245, "ddr": "DDR5", "capacity_gb": 16, "heat_spreader": true},
 	{"key": "ddr5_32", "kind": "ram", "model": "TR Memory 32 GB DDR5", "price": 345, "ddr": "DDR5", "capacity_gb": 32, "heat_spreader": true},
-	{"key": "amdera_frost_120", "kind": "cooling", "model": "Amdera Frost 120 · 120 mm", "price": 125, "socket": "AX4"},
-	{"key": "intara_breeze_92", "kind": "cooling", "model": "Intara Breeze 92 · 92 mm", "price": 90, "socket": "IX1700"},
-	{"key": "intara_breeze_120", "kind": "cooling", "model": "Intara Breeze 120 · 120 mm", "price": 140, "socket": "IX1700"},
+	{"key": "ddr5_48", "kind": "ram", "model": "TR Memory 48 GB DDR5", "price": 475, "ddr": "DDR5", "capacity_gb": 48, "speed_mt": 6000, "heat_spreader": true},
+	{"key": "amdera_frost_120", "kind": "cooling", "model": "Amdera Frost 120 · 120 mm", "price": 125, "socket": "AX4", "alternate_socket": "AM5", "size_mm": 148},
+	{"key": "amdera_compact_92", "kind": "cooling", "model": "Amdera Compact 92 · 92 mm", "price": 100, "socket": "AM4", "alternate_socket": "AM5", "size_mm": 96},
+	{"key": "intara_legacy_90", "kind": "cooling", "model": "Intara Classic 90 · 90 mm", "price": 80, "socket": "LGA1155", "alternate_socket": "LGA1151", "extra_socket": "LGA1200", "size_mm": 92},
+	{"key": "intara_breeze_92", "kind": "cooling", "model": "Intara Breeze 92 · 92 mm", "price": 90, "socket": "IX1700", "size_mm": 98},
+	{"key": "intara_breeze_120", "kind": "cooling", "model": "Intara Breeze 120 · 120 mm", "price": 140, "socket": "IX1700", "size_mm": 149},
 	{"key": "ssd_480", "kind": "storage", "model": "TR SSD SATA 480 GB · sem sistema", "price": 145},
 	{"key": "ssd_960", "kind": "storage", "model": "TR SSD SATA 960 GB · sem sistema", "price": 215},
-	{"key": "psu_550", "kind": "psu", "model": "TR Power 550 W · ATX", "price": 210},
-	{"key": "psu_650", "kind": "psu", "model": "TR Power 650 W · ATX", "price": 270}
-] + Cases.MODELS
+	{"key": "psu_550", "kind": "psu", "model": "TR Power 550 W · ATX", "price": 210, "size_mm": 140},
+	{"key": "psu_650", "kind": "psu", "model": "TR Power 650 W · ATX", "price": 270, "size_mm": 150},
+	{"key": "psu_850", "kind": "psu", "model": "TR Power 850 W · ATX", "price": 520, "size_mm": 160},
+	{"key": "psu_1000", "kind": "psu", "model": "TR Power 1000 W · ATX", "price": 780, "size_mm": 175},
+] + Hardware.BOARDS + Hardware.CPUS + Peripherals.GPUS + Peripherals.DRIVES + Cases.MODELS
 var state: Dictionary = {}
 
 
@@ -225,6 +239,8 @@ func move(id: String, location: String, position: Vector2 = Vector2.ZERO) -> boo
 	if record.has("case_key") and record.packaged:
 		return fail("Abra a embalagem antes de transportar o gabinete.")
 	if record.get("power", false): return fail("Desligue o computador antes de transportá-lo.")
+	if record.get("install_usb", false) and location != "bench":
+		return fail("Retire o pendrive de instalação antes de transportar o computador.")
 	if location == "inventory" and (record.kind == "pc" or at("inventory").size() >= INVENTORY_CAPACITY): return fail("Inventário: até 3 peças; transporte gabinetes nas mãos.")
 	if location == "carried" and carried() != "" and carried() != id:
 		return fail("Você só pode carregar um item por vez.")
@@ -261,9 +277,10 @@ func _free_inventory_slot(item_id: String) -> int:
 
 func unpack(id: String) -> bool:
 	var record := item(id)
-	if record.is_empty() or record.location != "floor" or not record.packaged:
+	if record.is_empty() or record.location not in ["floor", "shelf"] or not record.packaged:
 		return fail("Não há embalagem disponível aqui.")
 	record.packaged = false
+	if record.location == "shelf": return done("Embalagem aberta. A peça do armário pode ser instalada pela bancada.", "package")
 	return done("Embalagem aberta. O componente continua aqui: pressione E para pegá-lo.", "package")
 
 func arrange_storage(id: String, destination: String, slot: int) -> bool:
@@ -294,37 +311,67 @@ func toggle_latch(pc_id: String, index: int, slot: int = 0) -> bool:
 	if not pc.components.has("motherboard"): return fail("Instale a placa-mãe para acessar as travas da RAM.")
 	if pc.lid: return fail("Retire a tampa antes de abrir as travas da RAM.")
 	if index not in [0, 1]: return false
-	if slot not in [0,1]: return false
+	if slot not in ram_slots(pc_id): return false
 	var clips := ram_latches(pc_id,slot)
 	clips[index] = not clips[index]
-	return done("RAM A%d · trava %s %s." % [slot+1,"superior" if index == 0 else "inferior", "fechada" if clips[index] else "aberta"], "latch")
+	pc[Hardware.LATCH_KEYS[slot]] = clips
+	return done("RAM %s · trava %s %s." % [Hardware.RAM_LABELS[slot], "superior" if index == 0 else "inferior", "fechada" if clips[index] else "aberta"], "latch")
 
 
 func available_ram() -> Array:
-	var result: Array = []
-	for record in state.items.values():
-		if record.kind == "ram" and record.location in ["tray", "carried", "inventory"] and not record.packaged:
-			result.append(record.id)
-	return result
+	return available_parts("ram")
+
+func ram_slots(pc_id: String) -> Array:
+	return Hardware.slot_order(item(item(pc_id).get("components", {}).get("motherboard", "")))
+
 
 func ram_latches(pc_id: String, slot: int) -> Array:
+	return item(pc_id).get(Hardware.LATCH_KEYS[slot], [true, true])
+
+
+func ram_modules(pc: Dictionary) -> Array:
+	return _ram_modules(state.items, pc)
+
+
+static func _ram_modules(items: Dictionary, pc: Dictionary) -> Array:
+	var modules: Array = []
+	for key in Hardware.RAM_KEYS:
+		var module: Dictionary = items.get(pc.components.get(key, ""), {})
+		if not module.is_empty(): modules.append(module)
+	return modules
+
+
+func memory_profile(pc_id: String) -> Dictionary:
 	var pc := item(pc_id)
-	if slot == 0: return pc.latches
-	if not pc.has("ram2_latches"): pc.ram2_latches = [true,true]
-	return pc.ram2_latches
+	var board := item(pc.components.get("motherboard", ""))
+	var cpu := item(pc.components.get("cpu", ""))
+	var channels := [0, 0]
+	var speed := Hardware.memory_limit_mt(board, cpu)
+	for slot in ram_slots(pc_id):
+		var module := item(pc.components.get(Hardware.RAM_KEYS[slot], ""))
+		if module.is_empty(): continue
+		channels[slot % 2] += Hardware.module_capacity(module)
+		speed = mini(speed, Hardware.module_speed(module))
+	var total: int = channels[0] + channels[1]
+	if total == 0: return {}
+	var dual := 2 * mini(channels[0], channels[1])
+	return {"total_gb": total, "dual_gb": dual, "speed_mt": speed,
+		"mode": "Single Channel" if dual == 0 else "Dual Channel" if dual == total else "Dual Channel assimétrico",
+		"bandwidth_gbs": speed * 0.008 * (1.0 + float(dual) / total),
+		"performance": roundi(cpu.get("performance", Hardware.cpu_spec(cpu).get("performance", 50)) * (1.0 + 0.12 * float(dual) / total))}
 
 func ram_configuration_reason(pc_id: String) -> String:
 	var pc := item(pc_id)
-	var count := 0
 	var board := item(pc.components.get("motherboard",""))
-	for slot in range(2):
-		var module := item(pc.components.get("ram" if slot == 0 else "ram2",""))
-		if module.is_empty(): continue
-		count += 1
+	var modules := ram_modules(pc)
+	if modules.is_empty(): return "Componente essencial ausente — RAM: instale um módulo."
+	var reason := Hardware.memory_reason(board, item(pc.components.get("cpu", "")), modules)
+	if not reason.is_empty(): return reason
+	for slot in ram_slots(pc_id):
+		if not pc.components.has(Hardware.RAM_KEYS[slot]): continue
 		var clips := ram_latches(pc_id,slot)
-		if not clips[0] or not clips[1]: return "RAM A%d sem as duas travas fechadas." % (slot+1)
-		if module.get("ddr","") not in ["DDR4","DDR5"] or module.get("ddr","") != board.get("ddr","?"): return "RAM A%d incompatível com a placa-mãe." % (slot+1)
-	return "Componente essencial ausente — RAM: instale um módulo em A1 ou A2." if count == 0 else ""
+		if not clips[0] or not clips[1]: return "RAM %s sem as duas travas fechadas." % Hardware.RAM_LABELS[slot]
+	return ""
 
 
 func use_ram_slot(pc_id: String, selected_id: String, slot: int = 0) -> bool:
@@ -332,9 +379,9 @@ func use_ram_slot(pc_id: String, selected_id: String, slot: int = 0) -> bool:
 	var pc := item(pc_id)
 	if not pc.components.has("motherboard"): return fail("Instale a placa-mãe para acessar o slot de RAM.")
 	if pc.lid: return fail("Retire a tampa lateral.")
-	if slot not in [0,1]: return false
+	if slot not in ram_slots(pc_id): return false
 	var clips := ram_latches(pc_id,slot)
-	var key := "ram" if slot == 0 else "ram2"
+	var key: String = Hardware.RAM_KEYS[slot]
 	if clips[0] or clips[1]: return fail("Abra as duas travas deste slot antes de retirar ou encaixar a RAM.")
 	var installed: String = pc.components.get(key, "")
 	if installed != "":
@@ -344,11 +391,11 @@ func use_ram_slot(pc_id: String, selected_id: String, slot: int = 0) -> bool:
 		pc.components.erase(key)
 		pc.boot_ok = false
 		return done("RAM retirada para %s. Selecione outro módulo e clique no slot vazio." % ("a bandeja" if destination == "tray" else "o inventário"))
-	if selected_id not in available_ram(): return fail("Traga uma RAM desembalada da prateleira até a bandeja da bancada antes de selecioná-la.")
+	if selected_id not in available_ram(): return fail("Selecione uma RAM desembalada na lista de peças da bancada.")
 	var ram := item(selected_id)
 	var board := item(pc.components.get("motherboard", ""))
-	if board.is_empty() or board.get("ddr", "") not in ["DDR4", "DDR5"] or ram.get("ddr", "") != board.get("ddr", ""):
-		return fail("Incompatibilidade: o módulo %s não encaixa nesta placa-mãe %s." % [ram.get("ddr", "?"), board.get("ddr", "?")])
+	var reason := Hardware.memory_reason(board, item(pc.components.get("cpu", "")), ram_modules(pc) + [ram])
+	if not reason.is_empty(): return fail(reason)
 	ram.location = "installed"
 	ram.owner_pc = pc_id
 	pc.components[key] = selected_id
@@ -361,62 +408,364 @@ func toggle_power(pc_id: String) -> bool:
 	if pc.is_empty() or pc.location != "bench": return fail("Nenhum computador na bancada.")
 	var reason := assembly_power_block_reason(pc_id)
 	if not reason.is_empty(): return fail(reason)
-	pc.power = not pc.power
-	if not pc.power: pc.erase("test_job")
+	if not pc.power:
+		_begin_post(pc)
+		return done(pc.boot_result, "power_on")
+	pc.power = false
+	pc.erase("test_job")
+	var interrupted: bool = pc.get("installation", {}).get("phase") == "copying"
+	pc.erase("installation")
 	pc.boot_ok = false
-	pc.boot_remaining = 1.2 if pc.power else 0.0
-	pc.boot_result = "Executando POST…" if pc.power else "Computador desligado"
-	return done(pc.boot_result, "power_on" if pc.power else "power_off")
+	pc.boot_remaining = 0.0
+	pc.boot_result = "Computador desligado"
+	return done("Instalação interrompida. O conteúdo do disco foi preservado." if interrupted else pc.boot_result, "power_off")
 
 
 func request_post(pc_id: String) -> bool:
 	var pc := item(pc_id)
 	if pc.is_empty() or pc.kind != "pc" or pc.location != "bench": return fail("Coloque um computador na bancada antes de testar.")
+	if pc.has("installation"): return fail("Saia do instalador ou desligue o computador antes de iniciar outro POST.")
 	if pc.has("test_job"): return fail("Aguarde o teste de componente em andamento.")
 	if float(pc.boot_remaining) > 0: return fail("Aguarde o POST em andamento.")
 	var reason := assembly_power_block_reason(pc_id)
 	if not reason.is_empty(): return fail(reason)
+	_begin_post(pc)
+	return done("POST iniciado. Aguarde a verificação dos componentes instalados.", "power_on")
+
+
+func _begin_post(pc: Dictionary) -> void:
 	pc.power = true
 	pc.boot_ok = false
 	pc.boot_remaining = 1.2
 	pc.boot_result = "Executando POST…"
-	return done("POST iniciado. Aguarde a verificação dos componentes instalados.", "power_on")
+
+
+func prepare_install_usb() -> bool:
+	if state.get("install_usb_ready", false): return fail("O pendrive da oficina já está pronto.")
+	state.install_usb_ready = true
+	return done("Pendrive de instalação do TechOS pronto para usar na bancada.")
+
+
+func toggle_install_usb(pc_id: String) -> bool:
+	var pc := item(pc_id)
+	if pc.get("location") != "bench": return fail("Coloque um computador na bancada.")
+	if not state.get("install_usb_ready", false): return fail("Prepare o pendrive no TechOS da oficina.")
+	var installation: Dictionary = pc.get("installation", {})
+	if installation.get("phase") == "copying": return fail("Aguarde o término da instalação para retirar o pendrive.")
+	if not pc.get("install_usb", false):
+		pc.install_usb = true
+		return done("Pendrive de instalação conectado.", "cable_click")
+	pc.erase("install_usb")
+	if installation.get("phase") == "setup":
+		pc.erase("installation")
+		_begin_post(pc)
+	elif installation.get("phase") == "complete":
+		pc.boot_result = "TechOS instalado. Reinicie pelo disco."
+	return done("Pendrive de instalação retirado.", "cable_click")
+
+
+func can_boot_install_usb(pc_id: String) -> bool:
+	var pc := item(pc_id)
+	return pc.get("location") == "bench" and pc.get("install_usb", false) and pc.power \
+		and float(pc.boot_remaining) == 0.0 and not pc.has("installation") and not pc.has("test_job") \
+		and (pc.boot_ok or pc.boot_result == NO_BOOT_SYSTEM)
+
+
+func boot_install_usb(pc_id: String) -> bool:
+	if not can_boot_install_usb(pc_id): return fail("Conecte o pendrive e aguarde um POST bem-sucedido.")
+	var reason := _post_failure(pc_id)
+	if not reason.is_empty(): return fail(reason)
+	var pc := item(pc_id)
+	var disk := boot_drive(pc_id, false)
+	if disk.is_empty(): return fail("Nenhum disco SATA reconhecido para instalar o TechOS.")
+	pc.installation = {"phase": "setup", "disk": disk.id}
+	pc.boot_ok = false
+	pc.boot_result = "Instalador do TechOS iniciado pelo pendrive."
+	return done(pc.boot_result)
+
+
+func start_os_install(pc_id: String, disk_id: String, overwrite: bool) -> bool:
+	var pc := item(pc_id)
+	var installation: Dictionary = pc.get("installation", {})
+	if installation.get("phase") != "setup" or not pc.get("install_usb", false) or not pc.get("power", false):
+		return fail("Inicie pelo pendrive antes de instalar o TechOS.")
+	if disk_id.is_empty() or storage_status(pc_id, drive_slot(pc, disk_id)) != "recognized":
+		return fail("Selecione o disco instalado e reconhecido neste computador.")
+	var reason := _post_failure(pc_id)
+	if not reason.is_empty(): return fail(reason)
+	var disk := item(disk_id)
+	if disk.get("bootable", false) and not overwrite:
+		return fail("Confirme a substituição do sistema que já está no disco.")
+	installation.disk = disk_id
+	installation.phase = "copying"
+	installation.remaining = INSTALL_DURATION
+	pc.boot_result = "Instalando o TechOS no disco…"
+	return done(pc.boot_result)
+
+
+func restart_after_install(pc_id: String) -> bool:
+	var pc := item(pc_id)
+	if pc.get("installation", {}).get("phase") != "complete":
+		return fail("Conclua a instalação antes de reiniciar.")
+	if pc.get("install_usb", false): return fail("Retire o pendrive antes de reiniciar pelo disco.")
+	pc.erase("installation")
+	_begin_post(pc)
+	return done("Reiniciando pelo disco.", "power_on")
+
+
+func _finish_os_install(pc: Dictionary) -> void:
+	var disk := item(pc.installation.disk)
+	var reason := _post_failure(pc.id)
+	if not reason.is_empty() or storage_status(pc.id, drive_slot(pc, disk.get("id", ""))) != "recognized":
+		pc.installation.phase = "setup"
+		pc.installation.erase("remaining")
+		pc.boot_result = "A instalação foi interrompida. Verifique o disco e os componentes."
+		done(pc.boot_result, "boot_fail")
+		return
+	disk.bootable = true
+	disk.system = "TechOS"
+	disk.model = str(disk.model).trim_suffix(" · sem sistema")
+	disk.client_apps = []
+	pc.erase("client_apps")
+	pc.erase("service_post")
+	pc.installation.phase = "complete"
+	pc.installation.erase("remaining")
+	pc.boot_result = "TechOS instalado. Retire o pendrive e reinicie pelo disco."
+	done(pc.boot_result, "boot_ok")
+
+
+func client_apps(pc_id: String) -> Array:
+	var pc := item(pc_id)
+	var disk := boot_drive(pc_id)
+	if disk.is_empty():
+		for slot in STORAGE_SLOTS:
+			var part := item(pc.get("components", {}).get(slot, ""))
+			if part.get("bootable", false):
+				disk = part
+				break
+	var system_record := disk if disk.get("system") == "TechOS" else pc
+	return system_record.get("client_apps", [])
+
+
+func install_client_app(pc_id: String, app: String) -> void:
+	var pc := item(pc_id)
+	if not pc.get("boot_ok", false) or app not in ClientApps.OPTIONAL or app in client_apps(pc_id): return
+	var disk := boot_drive(pc_id)
+	var system_record := disk if disk.get("system") == "TechOS" else pc
+	system_record.client_apps = client_apps(pc_id) + [app]
+	done("Aplicativo instalado no TechOS.")
+
+
+func storage_description(disk: Dictionary) -> String:
+	var model := str(disk.get("model", "")).trim_suffix(" · sem sistema")
+	var hdd := Peripherals.hdd(disk)
+	return model if hdd.is_empty() else "%s · %s" % [hdd.model, Peripherals.capacity_label(hdd.capacity_gb)]
+
+
+func drive_count(pc: Dictionary) -> int:
+	var components: Dictionary = pc.get("components", {})
+	return int(components.has("storage")) + int(components.has("storage2"))
+
+
+func drive_slot(pc: Dictionary, disk_id: String) -> String:
+	for slot in STORAGE_SLOTS:
+		if pc.components.get(slot) == disk_id: return slot
+	return ""
+
+
+func boot_drive(pc_id: String, require_system: bool = true, assume_power: bool = false) -> Dictionary:
+	var pc := item(pc_id)
+	for slot in STORAGE_SLOTS:
+		if storage_status(pc_id, slot, assume_power) != "recognized": continue
+		var disk := item(pc.components[slot])
+		if not require_system or disk.get("bootable", false): return disk
+	return {}
+
+
+func installation_targets(pc_id: String) -> Array:
+	var pc := item(pc_id)
+	var disks: Array = []
+	for slot in STORAGE_SLOTS:
+		if storage_status(pc_id, slot) == "recognized": disks.append(item(pc.components[slot]))
+	return disks
+
+
+func storage_status(pc_id: String, slot: String = "storage", assume_power: bool = false) -> String:
+	var pc := item(pc_id)
+	var disk := item(pc.get("components", {}).get(slot, ""))
+	if disk.is_empty(): return "missing"
+	if (not assume_power and not pc.get("power", false)) or int(item(pc.components.get("psu", "")).get("health", 0)) < 15 or not _connected(pc, "psu", "chicote de energia") or not _connected(pc, slot, "SATA energia"):
+		return "no_power"
+	if not _connected(pc, slot, "SATA dados"): return "no_data"
+	if false in pc.get("mounts", {}).get(slot, {}).get("screws", []): return "unfixed"
+	if int(disk.health) < 15: return "failed"
+	return "recognized"
+
+
+func _connected(pc: Dictionary, kind: String, plug: String) -> bool:
+	return pc.get("mounts", {}).get(kind, {}).get("connections", {}).get(plug, pc.components.has(kind))
+
+
+func _storage_problem(status: String) -> String:
+	return {"no_power": "Armazenamento sem alimentação SATA.", "no_data": "Cabo SATA de dados desconectado; disco não reconhecido.", "failed": "Disco não reconhecido mesmo com os cabos conectados.", "unfixed": "Disco solto na baia.", "missing": "Armazenamento ausente."}.get(status, "")
+
+
+func gpu_power_reason(pc: Dictionary) -> String:
+	return Peripherals.power_reason(item(pc.components.get("gpu", "")), item(pc.components.get("psu", "")), item(pc.components.get("cpu", "")), drive_count(pc))
+
+
+func _psu_supplies_power(pc: Dictionary) -> bool:
+	if not pc.get("power", false): return false
+	var psu := item(pc.components.get("psu", ""))
+	return int(psu.get("health", 0)) >= 15 and _connected(pc, "psu", "chicote de energia")
+
+
+func _board_receives_power(pc: Dictionary) -> bool:
+	var board := item(pc.components.get("motherboard", ""))
+	return int(board.get("health", 0)) >= 15 and _connected(pc, "motherboard", "ATX 24 pinos")
+
+
+func _gpu_receives_power(pc: Dictionary, card: Dictionary) -> bool:
+	return _connected(pc, "gpu", "trava PCIe") and gpu_power_reason(pc).is_empty() and (
+		not gpu_has_auxiliary(card) or _connected(pc, "gpu", "energia"))
+
+
+func gpu_rgb_active(pc_id: String) -> bool:
+	var pc := item(pc_id)
+	if not _psu_supplies_power(pc): return false
+	var card := item(pc.components.get("gpu", ""))
+	return Peripherals.gpu(card).get("rgb", false) and card.health >= 15 and (
+		_board_receives_power(pc) and _gpu_receives_power(pc, card))
+
+
+func graphics_profile(pc_id: String) -> Dictionary:
+	var pc := item(pc_id)
+	return Peripherals.performance(item(pc.components.get("gpu", "")), item(pc.components.get("motherboard", "")), item(pc.components.get("cpu", "")))
+
+
+func fan_count(pc_id: String, kind: String) -> int:
+	var pc := item(pc_id)
+	if pc.is_empty(): return 0
+	if kind == "case": return Cases.get_model(pc.get("case_key", "")).get("stock_fans", 1)
+	var part := item(pc.components.get(kind, ""))
+	if kind == "gpu": return Peripherals.gpu_profile(part).get("fans", 0)
+	return int(not part.is_empty())
+
+
+func fan_fault(part: Dictionary) -> String:
+	if part.is_empty(): return ""
+	if part.has("fan_fault"): return part.fan_fault
+	if part.kind != "cooling": return ""
+	if part.health < 15: return "stuck"
+	if part.health < 35: return "irregular"
+	if part.health < 55: return "slow"
+	if part.health < 70: return "noisy"
+	return ""
+
+
+func fan_temperature(pc_id: String, kind: String) -> int:
+	var pc := item(pc_id)
+	var part := item(pc.components.get(kind, "")) if kind != "case" else pc
+	var load: bool = pc.get("test_job", {}).get("kind") == kind
+	var starting: bool = float(pc.get("boot_remaining", 0.0)) > 0
+	var idle := 35 if kind == "gpu" else 40
+	var under_load: int = Peripherals.gpu_profile(part).get("temp_c", 60) if kind == "gpu" else Hardware.cpu_spec(item(pc.components.get("cpu", ""))).get("temp_c", 60)
+	var temp: int = under_load if load else 53 if starting else idle
+	var fault := fan_fault(part)
+	if fault in ["stuck", "unplugged"]: temp += 23
+	elif fault in ["slow", "irregular"]: temp += 12
+	if fan_fault(pc) in ["stuck", "unplugged"]: temp += 5
+	return temp
+
+
+func fan_speed(pc_id: String, kind: String, time: float = 0.0) -> float:
+	var pc := item(pc_id)
+	if not _psu_supplies_power(pc) or fan_count(pc_id, kind) == 0: return 0.0
+	if kind != "psu" and not _board_receives_power(pc): return 0.0
+	var part := pc if kind == "case" else item(pc.components.get(kind, ""))
+	if kind == "cooling" and not _connected(pc, "cooling", "CPU FAN"): return 0.0
+	if kind == "gpu" and not _gpu_receives_power(pc, part): return 0.0
+	var fault := fan_fault(part)
+	if fault in ["stuck", "unplugged"]: return 0.0
+	var temp := fan_temperature(pc_id, kind)
+	if kind == "gpu" and Peripherals.gpu_profile(part).get("zero_rpm", false) and temp < 50: return 0.0
+	var speed: float = {"case": 2.2, "cooling": 3.6, "gpu": 3.8, "psu": 2.6}[kind]
+	speed *= 1.0 + maxf(0.0, temp - 45.0) / 70.0
+	if fault == "slow": speed *= 0.4
+	if fault == "irregular": speed *= 0.45 + absf(sin(time * 5.4)) * 0.36
+	return speed
 
 
 func assembly_power_block_reason(pc_id: String) -> String:
 	var pc := item(pc_id)
 	if not pc.has("case_key") or pc.power: return ""
 	for kind in ESSENTIAL_PARTS:
+		if kind == "storage" and pc.components.has("storage2"): continue
 		if not pc.components.has(kind):
 			return Prefs.t("Instale o componente essencial antes de ligar: %s.") % Prefs.t(PART_NAMES[kind])
-	for kind in ESSENTIAL_PARTS:
+	var cpu := item(pc.components.cpu)
+	var reason := Hardware.cpu_reason(item(pc.components.motherboard), cpu)
+	if not reason.is_empty(): return reason
+	if not _has_video_hardware(pc): return "GPU dedicada necessária para saída de vídeo."
+	reason = gpu_power_reason(pc)
+	if not reason.is_empty(): return reason
+	var required := ESSENTIAL_PARTS.duplicate()
+	if not pc.components.has("storage"): required.erase("storage")
+	if pc.components.has("gpu"): required.append("gpu")
+	for kind in required:
 		var mount: Dictionary = pc.get("mounts", {}).get(kind, {})
+		if kind == "storage" and not Peripherals.hdd(item(pc.components.storage)).is_empty():
+			if mount.is_empty() or false in mount.screws: return "Fixe o HD na baia antes de ligar."
+			continue
 		if mount.is_empty() or false in mount.screws or false in mount.connections.values():
 			return Prefs.t("Fixe e reconecte o componente antes de ligar: %s.") % Prefs.t(PART_NAMES[kind])
 	return ram_configuration_reason(pc_id)
 
 
 func evaluate_boot(pc_id: String) -> String:
+	var reason := _post_failure(pc_id)
+	if not reason.is_empty(): return reason
+	if boot_drive(pc_id, true, true).is_empty():
+		if boot_drive(pc_id, false, true).is_empty():
+			var pc := item(pc_id)
+			var slot := "storage" if pc.components.has("storage") else "storage2"
+			return "POST concluído. " + _storage_problem(storage_status(pc_id, slot, true))
+		return NO_BOOT_SYSTEM
+	return "POST concluído. Sistema inicializado; componentes essenciais reconhecidos."
+
+
+func _post_failure(pc_id: String) -> String:
 	var pc := item(pc_id)
 	if pc.has("mounts"):
 		for kind in pc.components:
-			if kind in ["ram", "ram2"]: continue
+			if kind in Hardware.RAM_KEYS or kind in STORAGE_SLOTS: continue
 			var mount: Dictionary = mounts(pc_id, kind)
 			if false in mount.screws or false in mount.connections.values(): return "Falha no POST: fixe e reconecte " + PART_NAMES.get(kind, kind)
 	for kind in ESSENTIAL_PARTS:
+		if kind == "storage" and drive_count(pc) > 0: continue
 		var part := item(pc.components.get(kind, ""))
 		if part.is_empty(): return "Falha no POST: componente essencial ausente — " + kind
-		if int(part.health) < (45 if kind == "ram" else 15):
+		if int(part.health) < 15:
 			return "Falha no POST: erros detectados em " + kind + (". Saúde confirmada: %d%%." % part.health if part.tested else ". Condição exata ainda não avaliada.")
-	var reason := ram_configuration_reason(pc_id)
+	var reason := Hardware.cpu_reason(item(pc.components.motherboard), item(pc.components.cpu))
 	if not reason.is_empty(): return "Falha no POST: " + reason
-	for key in ["ram","ram2"]:
-		var ram := item(pc.components.get(key,""))
-		if not ram.is_empty() and int(ram.health) < 45: return "Falha no POST: erros detectados em ram " + ("A1" if key == "ram" else "A2")
-	if gpu_output(item(pc.components.gpu)) == "artifacts":
+	if not _has_video_hardware(pc): return "Falha no POST: GPU dedicada necessária para saída de vídeo."
+	reason = gpu_power_reason(pc)
+	if not reason.is_empty(): return "Falha no POST: " + reason
+	reason = ram_configuration_reason(pc_id)
+	if not reason.is_empty(): return "Falha no POST: " + reason
+	for slot in ram_slots(pc_id):
+		var ram := item(pc.components.get(Hardware.RAM_KEYS[slot], ""))
+		if not ram.is_empty() and int(ram.health) < 45: return "Falha no POST: erros detectados em ram " + Hardware.RAM_LABELS[slot]
+	var gpu := item(pc.components.get("gpu", ""))
+	if not gpu.is_empty() and gpu_output(gpu) == "no_signal": return "Falha no POST: erros detectados em gpu."
+	if not gpu.is_empty() and gpu_output(gpu) == "artifacts":
 		return "POST com falha de vídeo: o monitor detectou artefatos e perda intermitente de sinal."
-	if not item(pc.components.storage).get("bootable", false): return "POST concluído, mas nenhum sistema inicializável foi encontrado."
-	return "POST concluído. Sistema inicializado; componentes essenciais reconhecidos."
+	return ""
+
+
+func _has_video_hardware(pc: Dictionary) -> bool:
+	return pc.components.has("gpu") or Hardware.has_integrated_graphics(item(pc.components.get("cpu", "")))
 
 
 func gpu_output(gpu: Dictionary) -> String:
@@ -429,19 +778,24 @@ func gpu_output(gpu: Dictionary) -> String:
 func video_status(pc_id: String) -> String:
 	var pc := item(pc_id)
 	if not pc.get("power", false): return "off"
-	for kind in ["motherboard", "psu", "cpu", "gpu"]:
+	if not _has_video_hardware(pc): return "no_signal"
+	if not gpu_power_reason(pc).is_empty(): return "no_signal"
+	if not Hardware.cpu_reason(item(pc.components.get("motherboard", "")), item(pc.components.get("cpu", ""))).is_empty(): return "no_signal"
+	var video_parts := ["motherboard", "psu", "cpu"]
+	if pc.components.has("gpu"): video_parts.append("gpu")
+	for kind in video_parts:
 		var part := item(pc.components.get(kind, ""))
 		var mount: Dictionary = pc.get("mounts", {}).get(kind, {})
 		var connections: Dictionary = mount.get("connections", {})
 		if int(part.get("health", 0)) < 15 or false in connections.values(): return "no_signal"
 	if not ram_configuration_reason(pc_id).is_empty(): return "no_signal"
-	for key in ["ram", "ram2"]:
-		var ram := item(pc.components.get(key, ""))
-		if not ram.is_empty() and int(ram.health) < 45: return "no_signal"
+	for ram in ram_modules(pc):
+		if int(ram.health) < 45: return "no_signal"
 	if float(pc.boot_remaining) > 0.85: return "sync"
-	if gpu_output(item(pc.components.gpu)) == "artifacts": return "artifacts"
+	if pc.components.has("gpu") and gpu_output(item(pc.components.gpu)) == "artifacts": return "artifacts"
 	if pc.get("test_job", {}).get("kind") == "gpu": return "pattern"
 	if float(pc.boot_remaining) > 0: return "post"
+	if pc.has("installation"): return "installer"
 	return "desktop" if pc.boot_ok else "firmware"
 
 
@@ -450,11 +804,11 @@ func test_ram(pc_id: String) -> bool:
 	if not reason.is_empty(): return fail(reason)
 	var pc := item(pc_id)
 	var results: Array[String] = []
-	for key in ["ram","ram2"]:
-		var ram := item(pc.components.get(key,""))
+	for slot in ram_slots(pc_id):
+		var ram := item(pc.components.get(Hardware.RAM_KEYS[slot], ""))
 		if ram.is_empty(): continue
 		ram.tested = true
-		ram.test_result = "%s: %d%% · %s" % ["A1" if key == "ram" else "A2",ram.health,condition_label(ram.health)]
+		ram.test_result = "%s: %d%% · %s" % [Hardware.RAM_LABELS[slot], ram.health, condition_label(ram.health)]
 		results.append(ram.test_result)
 	pc.boot_result = evaluate_boot(pc_id)
 	return done("Teste de memória concluído: "+"; ".join(results))
@@ -463,6 +817,7 @@ func test_ram(pc_id: String) -> bool:
 func ram_test_block_reason(pc_id: String) -> String:
 	var pc := item(pc_id)
 	if pc.is_empty() or pc.kind != "pc" or pc.location != "bench": return "Coloque um computador na bancada."
+	if pc.has("installation"): return "Saia do instalador para testar o computador."
 	if pc.has("test_job"): return "Aguarde o teste de componente em andamento."
 	if not pc.power: return "Ligue o PC ou clique em Iniciar POST antes de testar a RAM."
 	if float(pc.boot_remaining) > 0: return "Aguarde o término do POST para testar a RAM."
@@ -493,12 +848,15 @@ func purchase(key: String, heat_spreader_color: String = "") -> bool:
 			"latches": [true, true], "tool": "hands", "power": false, "boot_remaining": 0.0,
 			"boot_ok": false, "boot_result": "Não testado",
 		})
-	for field in ["ddr", "capacity_gb", "board_art", "board_format", "socket", "alternate_socket"]:
+	for field in ["ddr", "capacity_gb", "speed_mt", "board_art", "board_format", "socket", "alternate_socket", "extra_socket", "size_mm", "slots"]:
 		if product.has(field): part[field] = product[field]
+	if product.kind in ["motherboard", "cpu", "gpu", "storage"]: part.catalog_key = key
 	if not heat_spreader_color.is_empty():
 		part.heat_spreader_color = heat_spreader_color
 		part.model += " · " + heat_spreader_color
-	if product.kind == "storage": part.bootable = false
+	if product.kind == "storage":
+		part.bootable = false
+		if not Peripherals.hdd(part).is_empty(): part.hours_used = 0.0
 	part.origin = "purchase"
 	part.packaged = true
 	part.delivery_remaining = 3.0
@@ -533,7 +891,7 @@ func sell(id: String) -> bool:
 
 static func _can_sell_record(record: Dictionary) -> bool:
 	# A cabinet sale transfers the shell only. Installed parts must be removed first.
-	return record.kind != "pc" or (record.has("case_key") and record.components.is_empty())
+	return record.kind != "pc" or (record.has("case_key") and record.components.is_empty() and not record.get("install_usb", false))
 
 
 static func _resale_cents(purchase_price: int) -> int:
@@ -563,13 +921,35 @@ func tick(delta: float) -> void:
 			elif job.remaining == 0:
 				var tested_part := item(job.part_id)
 				tested_part.tested = true
-				tested_part.test_result = "%s: %d%% · %s. %s" % [PART_NAMES[job.kind], tested_part.health, condition_label(tested_part.health), "Sem falhas detectadas nesta verificação." if tested_part.defects.is_empty() else ", ".join(tested_part.defects)]
+				tested_part.test_result = "%s: %d%% · %s. %s" % [component_label(job.kind), tested_part.health, condition_label(tested_part.health), "Sem falhas detectadas nesta verificação." if tested_part.defects.is_empty() else ", ".join(tested_part.defects)]
+				if job.kind in STORAGE_SLOTS and not Peripherals.hdd(tested_part).is_empty():
+					var status := storage_status(record.id, job.kind)
+					if status not in ["recognized", "failed"]: tested_part.tested = false
+					tested_part.test_result = _hdd_report(tested_part, status)
+					if status in ["recognized", "failed"] and tested_part.health < 42: Audio.play("hdd_click")
 				if job.kind == "gpu":
 					var output := gpu_output(tested_part)
 					var observed: String = {"no_signal": "A placa não gera sinal.", "artifacts": "Artefatos e perda intermitente de sinal.", "stable": "Saída da placa estável."}[output]
 					tested_part.test_result += " " + observed
+					var profile := graphics_profile(record.id)
+					if not profile.is_empty():
+						tested_part.test_result += " PCIe %d x%d · %d pontos%s." % [profile.link, profile.lanes, profile.score, " (limitado pelo processador)" if profile.cpu_limit else ""]
+				if job.kind in ["gpu", "cooling", "psu"]:
+					tested_part.test_result += " Temperatura simulada: %d °C." % fan_temperature(record.id, job.kind)
+					var fault := fan_fault(tested_part)
+					if not fault.is_empty():
+						tested_part.test_result += " " + {"stuck": "Ventoinha travada.", "slow": "Ventoinha com rotação baixa.", "irregular": "Rotação irregular.", "noisy": "Ruído anormal na ventoinha.", "unplugged": "Ventoinha desconectada."}[fault]
+						if fault == "noisy" and fan_speed(record.id, job.kind) > 0: Audio.play("fan_rattle")
 				record.erase("test_job")
 				done(tested_part.test_result)
+		if record.kind == "pc" and record.power:
+			for slot in STORAGE_SLOTS:
+				var disk := item(record.components.get(slot, ""))
+				if not Peripherals.hdd(disk).is_empty() and disk.health >= 15 and storage_status(record.id, slot) in ["recognized", "no_data"]:
+					var previous: float = disk.get("hours_used", 0.0)
+					disk.hours_used = previous + delta / 60.0
+					var wear := floori(disk.hours_used / 500.0) - floori(previous / 500.0)
+					if wear > 0: disk.health = maxi(0, int(disk.health) - wear)
 		if record.location == "delivery":
 			record.delivery_remaining = maxf(0.0, float(record.delivery_remaining) - delta)
 			if record.delivery_remaining == 0:
@@ -582,6 +962,31 @@ func tick(delta: float) -> void:
 				record.boot_ok = record.boot_result.begins_with("POST concluído. Sistema")
 				if record.boot_ok: record.service_post = Orders.signature(self, record)
 				done(record.boot_result, "boot_ok" if record.boot_ok else "boot_fail")
+		elif record.kind == "pc" and record.get("installation", {}).get("phase") == "copying":
+			var installation: Dictionary = record.installation
+			installation.remaining = maxf(0.0, float(installation.remaining) - delta)
+			if installation.remaining == 0.0: _finish_os_install(record)
+	Mail.tick(self, delta)
+
+
+func _hdd_report(disk: Dictionary, status: String) -> String:
+	if status == "failed": return "HD não reconhecido com os cabos conectados. Verifique ruído mecânico, falha de leitura e partida do motor."
+	if status != "recognized": return _storage_problem(status)
+	var spec := Peripherals.hdd(disk)
+	var health := int(disk.health)
+	var bad_sectors := maxi(0, 75 - health) * 3
+	var rate := clampf(health / 90.0, 0.25, 1.0)
+	var symptoms := "Leitura e escrita estáveis."
+	if health < 75: symptoms = "Leitura lenta com setores defeituosos."
+	if health < 42: symptoms = "Erros de leitura e estalos mecânicos durante a verificação."
+	return "%s · Saúde %d%% · %d °C · %.1f h · %d setores defeituosos · %d/%d MB/s. %s" % [
+		"Inicializável" if disk.get("bootable", false) else "Reconhecido, sem sistema",
+		health, spec.temp_c + (100 - health) / 8, disk.get("hours_used", 0.0),
+		bad_sectors, roundi(spec.read_mb * rate), roundi(spec.write_mb * rate), symptoms]
+
+
+static func component_label(kind: String) -> String:
+	return "Armazenamento · SATA 2" if kind == "storage2" else PART_NAMES.get(kind, kind)
 
 
 static func condition_label(health: int) -> String:
@@ -613,6 +1018,7 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 	var balance_adjustment: Variant = candidate.get("balance_adjustment", 0)
 	if not money_value(balance_adjustment) or balance_adjustment < 0: return false
 	if not candidate.get("tools") is bool or not candidate.get("player") is Array or candidate.player.size() != 2: return false
+	if not candidate.get("install_usb_ready", false) is bool: return false
 	for coordinate in candidate.player:
 		if not numeric(coordinate) or absf(float(coordinate)) > 2000: return false
 	var carries := 0
@@ -628,8 +1034,34 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 		if not r.get("model") is String or not numeric(r.get("health")) or r.health < 0 or r.health > 100 or int(r.health) != r.health: return false
 		if not r.get("tested") is bool or not r.get("packaged") is bool or not r.get("defects") is Array: return false
 		if r.get("kind") not in ["pc", "ram", "gpu", "storage", "psu", "cooling", "motherboard", "cpu"]: return false
-		if r.kind in ["ram", "motherboard"] and r.get("ddr", "") not in ["DDR4", "DDR5"]: return false
+		if r.has("system") and (r.kind != "storage" or r.system != "TechOS" or r.get("bootable") != true): return false
+		if r.has("client_apps"):
+			if r.kind != "pc" and r.get("system") != "TechOS": return false
+			if not r.client_apps is Array: return false
+			var installed := {}
+			for app in r.client_apps:
+				if app not in ClientApps.OPTIONAL or installed.has(app): return false
+				installed[app] = true
+		if r.has("install_usb"):
+			if r.install_usb != true or r.kind != "pc" or r.location != "bench" or not candidate.get("install_usb_ready", false): return false
+		if r.has("installation") and (r.kind != "pc" or not _valid_installation(candidate.items, r)): return false
+		if r.kind in ["ram", "motherboard"] and r.get("ddr", "") not in Hardware.DDR_TYPES: return false
+		if r.has("catalog_key") and (r.kind not in ["cpu", "motherboard", "gpu", "storage"] or not r.catalog_key is String): return false
+		if r.has("slots") and (r.kind != "gpu" or not numeric(r.slots) or int(r.slots) != r.slots or r.slots < 1 or r.slots > 4): return false
+		if r.has("hours_used") and (Peripherals.hdd(r).is_empty() or not numeric(r.hours_used) or r.hours_used < 0): return false
+		if r.has("fan_fault") and (r.kind not in ["cooling", "gpu", "psu", "pc"] or r.fan_fault not in ["stuck", "slow", "irregular", "noisy", "unplugged"]): return false
+		for field in ["socket", "alternate_socket", "extra_socket"]:
+			if r.has(field) and not r[field] is String: return false
+		for field in ["capacity_gb", "speed_mt"]:
+			if not r.has(field): continue
+			if r.kind != "ram" and not (field == "capacity_gb" and not Peripherals.hdd(r).is_empty()): return false
+			if not numeric(r[field]) or r[field] <= 0 or r[field] != int(r[field]): return false
+		if r.has("size_mm") and (not Cases.CLEARANCES.has(r.kind) or not numeric(r.size_mm) or r.size_mm <= 0 or r.size_mm != int(r.size_mm)): return false
 		if r.has("board_format") and (r.kind != "motherboard" or r.board_format not in Cases.FORMATS): return false
+		if r.has("stored_ram_latches"):
+			if r.kind != "motherboard" or r.location == "installed" or not r.stored_ram_latches is Dictionary: return false
+			for field in r.stored_ram_latches:
+				if field not in Hardware.LATCH_KEYS or not _valid_ram_clips(r.stored_ram_latches[field]): return false
 		if r.has("case_key") and (r.kind != "pc" or not r.case_key is String): return false
 		if r.has("heat_spreader_color") and (r.kind != "ram" or not HEAT_SPREADERS.has(r.heat_spreader_color)): return false
 		if not r.get("position") is Array or r.position.size() != 2: return false
@@ -658,13 +1090,14 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 			if r.shelf_slot != slot or slot < 0 or slot in shelves: return false
 			shelves.append(slot)
 		if r.kind == "pc":
-			if r.has("ram2_latches"):
-				if not r.ram2_latches is Array or r.ram2_latches.size() != 2: return false
-				for flag in r.ram2_latches:
-					if not flag is bool: return false
+			for flag in ["gpu_bracket_open", "gpu_slot_open"]:
+				if r.has(flag) and not r[flag] is bool: return false
+			for field in Hardware.LATCH_KEYS:
+				if not r.has(field): continue
+				if not _valid_ram_clips(r[field]): return false
 			if r.has("test_job"):
 				var job: Variant = r.test_job
-				if not job is Dictionary or not numeric(job.get("remaining")) or job.remaining < 0 or job.get("kind") not in PART_NAMES: return false
+				if not job is Dictionary or not numeric(job.get("remaining")) or job.remaining < 0 or not FASTENERS.has(job.get("kind")): return false
 				if not r.get("components") is Dictionary or r.components.get(job.kind) != job.get("part_id") or not r.get("power", false): return false
 			if r.has("mounts"):
 				if not r.mounts is Dictionary: return false
@@ -678,12 +1111,6 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 					for connector in CONNECTIONS[kind]:
 						if not mount.connections.has(connector): return false
 			if not r.get("components") is Dictionary or not r.get("screws") is Array or r.screws.size() != 4 or not r.get("latches") is Array or r.latches.size() != 2: return false
-			if r.has("client_apps"):
-				if not r.client_apps is Array: return false
-				var installed := {}
-				for app in r.client_apps:
-					if app not in preload("res://Scripts/TechOS/client_apps.gd").OPTIONAL or installed.has(app): return false
-					installed[app] = true
 			if not r.get("lid") is bool or not r.get("power") is bool or not r.get("boot_ok") is bool or not r.get("boot_result") is String or r.get("tool") not in ["hands", "phillips"]: return false
 			if r.tool == "phillips" and not candidate.tools: return false
 			if not numeric(r.get("boot_remaining")) or r.boot_remaining < 0: return false
@@ -702,12 +1129,21 @@ func valid(candidate: Dictionary, inventory_limit: int = INVENTORY_CAPACITY) -> 
 				if not candidate.items.has(child_id) or referenced.has(child_id): return false
 				if not candidate.items[child_id] is Dictionary: return false
 				var child: Dictionary = candidate.items[child_id]
-				if child.get("kind") != ("ram" if kind == "ram2" else kind) or child.get("location") != "installed" or child.get("owner_pc") != id: return false
+				if child.get("kind") != ("ram" if kind in Hardware.RAM_KEYS else "storage" if kind in STORAGE_SLOTS else kind) or child.get("location") != "installed" or child.get("owner_pc") != id: return false
 				if not case_model.is_empty() and not _valid_assembly_part(candidate.items, r, case_model, kind, child): return false
 				referenced[child_id] = id
 	for id in candidate.items:
-		if candidate.items[id].location == "installed" and not referenced.has(id): return false
+		var record: Dictionary = candidate.items[id]
+		if record.location == "installed" and not referenced.has(id): return false
+		if record.kind != "pc": continue
+		var board: Dictionary = candidate.items.get(record.components.get("motherboard", ""), {})
+		var cpu: Dictionary = candidate.items.get(record.components.get("cpu", ""), {})
+		var slots := Hardware.slot_order(board)
+		for slot in range(Hardware.RAM_KEYS.size()):
+			if record.components.has(Hardware.RAM_KEYS[slot]) and slot not in slots: return false
+		if not Hardware.memory_reason(board, cpu, _ram_modules(candidate.items, record)).is_empty(): return false
 	if not Orders.valid(candidate): return false
+	if not Mail.valid(candidate): return false
 	var credit_total_cents := (500 + Orders.earnings(candidate)) * 100 + roundi(balance_adjustment * 100.0)
 	var deliveries := Orders.completed_count(candidate)
 	var shelf_level := 0
@@ -757,21 +1193,46 @@ static func money_value(value: Variant) -> bool:
 	return numeric(value) and absf(float(value) * 100.0 - roundf(float(value) * 100.0)) < 0.00001
 
 
+static func _valid_ram_clips(clips: Variant) -> bool:
+	return clips is Array and clips.size() == 2 and clips[0] is bool and clips[1] is bool
+
+
+static func _valid_installation(items: Dictionary, pc: Dictionary) -> bool:
+	var installation: Variant = pc.installation
+	if not installation is Dictionary or pc.location != "bench" or pc.get("power") != true: return false
+	if pc.get("boot_ok") != false or pc.get("boot_remaining") != 0 or pc.has("test_job"): return false
+	if not pc.get("components") is Dictionary or not installation.get("disk") is String: return false
+	if pc.components.get("storage") != installation.disk and pc.components.get("storage2") != installation.disk: return false
+	var disk: Variant = items.get(installation.disk)
+	if not disk is Dictionary or disk.get("kind") != "storage": return false
+	match installation.get("phase"):
+		"setup":
+			return pc.get("install_usb", false) == true and not installation.has("remaining")
+		"copying":
+			return pc.get("install_usb", false) == true and numeric(installation.get("remaining")) \
+				and installation.remaining > 0 and installation.remaining <= INSTALL_DURATION
+		"complete":
+			return disk.get("system") == "TechOS" and not installation.has("remaining")
+	return false
+
+
 func _valid_assembly_part(items: Dictionary, pc: Dictionary, case_model: Dictionary, kind: String, part: Dictionary) -> bool:
-	if part.get("packaged") != false or (not PART_NAMES.has(kind) and kind != "ram2"): return false
-	if kind not in ["ram", "ram2"] and not pc.get("mounts", {}).has(kind): return false
-	if kind == "motherboard": return Cases.board_format(part) in case_model.board_formats
-	if kind in ["psu", "storage"]: return true
+	if part.get("packaged") != false or (not FASTENERS.has(kind) and kind not in Hardware.RAM_KEYS): return false
+	if kind not in Hardware.RAM_KEYS and not pc.get("mounts", {}).has(kind): return false
+	if not Cases.fit_reason(case_model, part).is_empty(): return false
+	if kind == "motherboard": return true
+	if kind in STORAGE_SLOTS: return _drive_fit_reason(items, pc, kind, part).is_empty()
+	if kind == "psu": return true
 	var board_id: Variant = pc.components.get("motherboard")
 	if not board_id is String: return false
 	var board: Variant = items.get(board_id)
 	if not board is Dictionary: return false
-	if kind == "gpu": return true
-	if kind in ["ram", "ram2"]: return part.get("ddr") == board.get("ddr")
+	if kind == "gpu": return Peripherals.board_bus(board)[0] > 0
+	if kind in Hardware.RAM_KEYS: return part.get("ddr") == board.get("ddr")
+	if kind == "cpu": return Hardware.cpu_reason(board, part).is_empty()
 	if kind == "cooling" and not pc.components.has("cpu"): return false
 	var board_socket: Variant = board.get("socket", "TR4")
-	var part_socket: Variant = part.get("socket", "TR4")
-	return board_socket is String and part_socket is String and (part_socket == board_socket or part.get("alternate_socket") == board_socket)
+	return board_socket is String and Hardware.socket(board_socket) in mounting_sockets(part)
 
 
 func mounts(pc_id: String, kind: String) -> Dictionary:
@@ -788,18 +1249,59 @@ func mounts(pc_id: String, kind: String) -> Dictionary:
 	return pc.mounts[kind]
 
 
-func available_parts() -> Array:
+func available_parts(kind: String = "", include_boxed_cabinet: bool = false) -> Array:
 	var result: Array = []
 	for record in state.items.values():
-		if record.kind != "pc" and record.location in ["tray", "carried", "inventory"] and not record.packaged: result.append(record.id)
+		if record.kind == "pc" or (not kind.is_empty() and record.kind != kind): continue
+		if record.location not in BENCH_PART_LOCATIONS: continue
+		if not record.packaged or (include_boxed_cabinet and record.location == "shelf"): result.append(record.id)
 	return result
+
+
+func _drive_fit_reason(items: Dictionary, pc: Dictionary, slot: String, part: Dictionary) -> String:
+	var is_hdd := not Peripherals.hdd(part).is_empty()
+	var case_model := Cases.get_model(pc.get("case_key", ""))
+	var bay_limit: int = case_model.get("drives_35" if is_hdd else "drives_25", 1)
+	var bays_used := 0
+	var ports_used := 0
+	for other in STORAGE_SLOTS:
+		if other == slot: continue
+		var drive: Dictionary = items.get(pc.components.get(other, ""), {})
+		if drive.is_empty(): continue
+		ports_used += 1
+		if is_hdd == (not Peripherals.hdd(drive).is_empty()): bays_used += 1
+	if bays_used >= bay_limit:
+		return "Não há baia de %s″ livre neste gabinete." % ("3,5" if is_hdd else "2,5")
+	var board: Dictionary = items.get(pc.components.get("motherboard", ""), {})
+	if not board.is_empty() and ports_used >= int(Peripherals.board_bus(board)[1]):
+		return "Não há porta SATA livre na placa-mãe."
+	return ""
+
+
+func operate_gpu_bay(pc_id: String, action: String) -> bool:
+	if not safe_to_work(pc_id): return false
+	var pc := item(pc_id)
+	if pc.lid: return fail("Retire a tampa lateral.")
+	if pc.components.has("gpu"): return fail("Retire a placa de vídeo antes de operar a baia vazia.")
+	if action == "bracket":
+		if pc.tool != "phillips": return fail("Use a Phillips para remover ou recolocar a proteção traseira.")
+		pc.gpu_bracket_open = not pc.get("gpu_bracket_open", false)
+		return done("Proteção traseira removida." if pc.gpu_bracket_open else "Proteção traseira recolocada.", "screw")
+	if not pc.components.has("motherboard"): return fail("Instale a placa-mãe antes de abrir a trava PCIe.")
+	if pc.tool != "hands": return fail("Use Mãos para operar a trava do PCIe.")
+	pc.gpu_slot_open = not pc.get("gpu_slot_open", false)
+	return done("Trava PCIe aberta." if pc.gpu_slot_open else "Trava PCIe fechada.", "latch")
+
+
+func gpu_has_auxiliary(card: Dictionary) -> bool:
+	return not Peripherals.gpu_profile(card).get("plugs", []).is_empty()
 
 
 func operate_mount(pc_id: String, kind: String, action: String, index: int) -> bool:
 	if not safe_to_work(pc_id): return false
 	var pc := item(pc_id)
 	if pc.lid: return fail("Retire a tampa para acessar as fixações.")
-	if not PART_NAMES.has(kind): return false
+	if not FASTENERS.has(kind): return false
 	if kind == "cpu" and pc.components.has("cooling"): return fail("Retire o cooler para acessar a alavanca do socket.")
 	if not pc.components.has(kind): return fail("Encaixe a peça antes de reconectar ou fixar.")
 	var mount := mounts(pc_id, kind)
@@ -814,11 +1316,15 @@ func operate_mount(pc_id: String, kind: String, action: String, index: int) -> b
 		var keys: Array = CONNECTIONS[kind]
 		if index < 0 or index >= keys.size(): return false
 		var connector: String = keys[index]
+		if kind == "gpu" and connector == "energia" and not gpu_has_auxiliary(item(pc.components.gpu)): return false
+		if kind == "gpu" and connector == "energia" and not mount.connections.energia:
+			var reason := gpu_power_reason(pc)
+			if not reason.is_empty(): return fail(reason)
 		mount.connections[connector] = not mount.connections[connector]
 		if mount.connections[connector] and connector not in ["socket", "trava PCIe"]:
 			cue = "cable_click"
 	pc.boot_ok = false
-	return done("%s: %s atualizado. Desligado durante toda a desmontagem." % [PART_NAMES[kind], "parafuso" if action == "screw" else "conector / trava"], cue)
+	return done("%s: %s atualizado. Desligado durante toda a desmontagem." % [component_label(kind), "parafuso" if action == "screw" else "conector / trava"], cue)
 
 
 func use_component(pc_id: String, kind: String, selected_id: String) -> bool:
@@ -827,46 +1333,68 @@ func use_component(pc_id: String, kind: String, selected_id: String) -> bool:
 	var pc := item(pc_id)
 	if pc.lid: return fail("Retire a tampa lateral.")
 	if pc.tool != "hands": return fail("Selecione Mãos (1) para manusear peças.")
-	if not PART_NAMES.has(kind): return false
+	if not FASTENERS.has(kind): return false
 	var installed: String = pc.components.get(kind, "")
 	if kind == "cpu" and pc.components.has("cooling"): return fail("Retire o cooler antes do processador; o processador usa socket, sem parafusos.")
 	if kind == "motherboard":
-		for child in ["cpu", "ram", "ram2", "gpu", "cooling"]:
+		for child in ["cpu", "gpu", "cooling"] + Hardware.RAM_KEYS:
 			if pc.components.has(child): return fail("Retire CPU, cooler, RAM e GPU antes de retirar a placa-mãe.")
 	if installed != "":
 		var mount := mounts(pc_id, kind)
-		if true in mount.screws: return fail("Solte os %d parafuso(s) restantes de %s." % [mount.screws.count(true), PART_NAMES[kind]])
-		if true in mount.connections.values(): return fail("Libere os conectores / travas de " + PART_NAMES[kind] + ": " + ", ".join(CONNECTIONS[kind]))
+		if true in mount.screws: return fail("Solte os %d parafuso(s) restantes de %s." % [mount.screws.count(true), component_label(kind)])
+		var locked: Dictionary = mount.connections.duplicate()
+		if kind == "gpu" and not gpu_has_auxiliary(item(installed)): locked.erase("energia")
+		if true in locked.values(): return fail("Libere os conectores / travas de " + component_label(kind) + ": " + ", ".join(locked.keys()))
 		var destination := "tray" if at("tray").size() < 4 else "inventory"
 		if destination == "inventory" and at("inventory").size() >= INVENTORY_CAPACITY: return fail("Bandeja e inventário cheios. Guarde peças no armário.")
 		_release_installed_part(installed, destination)
 		pc.components.erase(kind)
+		if kind == "gpu" and not Peripherals.gpu(item(installed)).is_empty(): pc.gpu_slot_open = true
+		if kind == "motherboard":
+			var stored := {}
+			for field in Hardware.LATCH_KEYS:
+				if pc.has(field) and false in pc[field]: stored[field] = pc[field]
+				pc.erase(field)
+			pc.latches = [true, true]
+			if not stored.is_empty(): item(installed).stored_ram_latches = stored
 		pc.mounts.erase(kind)
 		pc.boot_ok = false
-		return done(PART_NAMES[kind] + " retirada para " + ("a bandeja." if destination == "tray" else "o inventário."))
-	if selected_id not in available_parts() or item(selected_id).kind != kind: return fail("Selecione uma peça compatível no inventário da inspeção.")
+		return done(component_label(kind) + " retirada para " + ("a bandeja." if destination == "tray" else "o inventário."))
+	var expected := "storage" if kind in STORAGE_SLOTS else kind
+	if selected_id not in available_parts() or item(selected_id).kind != expected: return fail("Selecione uma peça compatível no inventário da inspeção.")
 	var part := item(selected_id)
 	var board := item(pc.components.get("motherboard", ""))
-	if kind == "motherboard" and pc.has("case_key"):
-		var format := Cases.board_format(part)
-		var supported: Array = Cases.get_model(pc.case_key).board_formats
-		if format not in supported:
-			return fail(Prefs.t("Formato incompatível: %s. Este gabinete aceita %s.") % [
-				Prefs.t("Desconhecido") if format.is_empty() else format, " / ".join(supported),
-			])
+	if pc.has("case_key"):
+		var fit := Cases.fit_reason(Cases.get_model(pc.case_key), part)
+		if not fit.is_empty(): return fail(fit)
 	if kind in ["cpu", "ram", "gpu", "cooling"] and board.is_empty(): return fail("Instale a placa-mãe primeiro.")
+	if kind in STORAGE_SLOTS:
+		var reason := _drive_fit_reason(state.items, pc, kind, part)
+		if not reason.is_empty(): return fail(reason)
+	if kind == "gpu" and not Peripherals.gpu(part).is_empty():
+		if int(Peripherals.board_bus(board)[0]) == 0: return fail("A placa-mãe precisa de um slot PCI Express disponível.")
+		if not pc.get("gpu_bracket_open", false): return fail("Remova a proteção traseira do gabinete com a Phillips.")
+		if not pc.get("gpu_slot_open", false): return fail("Abra a trava do slot PCIe com Mãos antes de encaixar a GPU.")
 	if kind == "cooling" and not pc.components.has("cpu"): return fail("Encaixe o processador antes do cooler.")
-	if kind in ["cpu", "cooling"]:
-		var board_socket: String = board.get("socket", "TR4")
+	if kind == "cpu":
+		var reason := Hardware.cpu_reason(board, part)
+		if reason.is_empty(): reason = Hardware.memory_reason(board, part, ram_modules(pc))
+		if not reason.is_empty(): return fail(reason)
+	if kind == "cooling":
+		var board_socket := Hardware.socket(board.get("socket", "TR4"))
 		var sockets := mounting_sockets(part)
 		if board_socket not in sockets:
 			return fail("Socket incompatível: a peça usa %s e a placa-mãe usa %s." % [" / ".join(sockets), board_socket])
-	mounts(pc_id, kind)
+	var mount := mounts(pc_id, kind)
+	if kind == "gpu" and not gpu_has_auxiliary(part): mount.connections.energia = true
 	part.location = "installed"
 	part.owner_pc = pc_id
 	pc.components[kind] = selected_id
+	if kind == "motherboard" and part.has("stored_ram_latches"):
+		pc.merge(part.stored_ram_latches, true)
+		part.erase("stored_ram_latches")
 	pc.boot_ok = false
-	return done(PART_NAMES[kind] + " encaixada. Reconecte e fixe todos os pontos destacados.")
+	return done(component_label(kind) + " encaixada. Reconecte e fixe todos os pontos destacados.")
 
 
 func _release_installed_part(id: String, destination: String) -> void:
@@ -878,8 +1406,9 @@ func _release_installed_part(id: String, destination: String) -> void:
 
 
 func mounting_sockets(part: Dictionary) -> PackedStringArray:
-	var sockets := PackedStringArray([part.get("socket", "TR4")])
-	if part.has("alternate_socket"): sockets.append(part.alternate_socket)
+	var sockets := PackedStringArray([Hardware.socket(part.get("socket", "TR4"))])
+	for field in ["alternate_socket", "extra_socket"]:
+		if part.has(field): sockets.append(Hardware.socket(part[field]))
 	return sockets
 
 
@@ -890,12 +1419,13 @@ func test_component(pc_id: String, kind: String) -> bool:
 	var pc := item(pc_id)
 	var part := item(pc.components.get(kind, ""))
 	pc.test_job = {"kind": kind, "part_id": part.id, "remaining": 1.8}
-	return done("Teste de %s iniciado. Aguarde a verificação da bancada." % PART_NAMES[kind])
+	return done("Teste de %s iniciado. Aguarde a verificação da bancada." % component_label(kind))
 
 
 func component_test_block_reason(pc_id: String, kind: String) -> String:
 	var pc := item(pc_id)
 	if pc.is_empty() or pc.location != "bench": return "Coloque um computador na bancada."
+	if pc.has("installation"): return "Saia do instalador para testar o computador."
 	if pc.has("test_job"): return "Teste em andamento. Aguarde ou desligue o PC para cancelar."
 	if not pc.power or float(pc.boot_remaining) > 0: return "Ligue o computador e aguarde o POST antes do teste."
 	var part := item(pc.components.get(kind, ""))
@@ -904,6 +1434,7 @@ func component_test_block_reason(pc_id: String, kind: String) -> String:
 		if dependency == kind: continue
 		var support := item(pc.components.get(dependency, ""))
 		if support.is_empty() or int(support.health) < 15: return "Teste bloqueado pela alimentação/placa-mãe: " + PART_NAMES[dependency]
+	if kind in STORAGE_SLOTS and not Peripherals.hdd(part).is_empty(): return ""
 	var mount := mounts(pc_id, kind)
 	if false in mount.screws or false in mount.connections.values(): return "Fixe e reconecte a peça antes do teste."
 	return ""

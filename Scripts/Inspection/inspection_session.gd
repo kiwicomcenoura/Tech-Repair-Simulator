@@ -6,6 +6,7 @@ signal changed
 signal notice(text: String, failed: bool)
 
 const Audio := preload("res://Scripts/Gameplay/workshop_audio.gd")
+const Hardware := preload("res://Scripts/Equipment/hardware_catalog.gd")
 var workshop: Node
 var physical_pc_id := ""
 var _lid := true
@@ -40,7 +41,7 @@ func _record() -> Dictionary:
 
 func use_ram_latch(index: int, slot: int = 0) -> void:
 	if not is_instance_valid(workshop): return
-	selected = StringName(("ram_latch_" if slot == 0 else "ram2_latch_") + str(index))
+	selected = StringName("%s_latch_%d" % [Hardware.RAM_KEYS[slot], index])
 	if tool != &"hands":
 		notice.emit("Selecione Mãos para operar as travas sem danificar a RAM.", true)
 		return
@@ -49,7 +50,7 @@ func use_ram_latch(index: int, slot: int = 0) -> void:
 
 func use_ram_component(slot: int = 0) -> void:
 	if not is_instance_valid(workshop): return
-	selected = &"ram" if slot == 0 else &"ram2"
+	selected = StringName(Hardware.RAM_KEYS[slot])
 	if tool != &"hands":
 		notice.emit("Selecione Mãos para retirar ou encaixar um módulo de RAM.", true)
 		return
@@ -66,13 +67,16 @@ func interact_with(id: StringName) -> void:
 	if physical and target.begins_with("mount:"):
 		var fields := target.split(":")
 		workshop.ledger.operate_mount(physical_pc_id, fields[1], fields[2], int(fields[3]))
-	elif physical and target.begins_with("ram2_latch_"):
-		use_ram_latch(int(target.trim_prefix("ram2_latch_")), 1)
-	elif physical and target.begins_with("ram_latch_"):
-		use_ram_latch(int(target.trim_prefix("ram_latch_")))
-	elif physical and id in [&"ram", &"ram2"]:
-		use_ram_component(1 if id == &"ram2" else 0)
-	elif physical and target in workshop.ledger.PART_NAMES:
+	elif physical and target.begins_with("gpu_bay:"):
+		selected = id
+		workshop.ledger.operate_gpu_bay(physical_pc_id, target.get_slice(":", 1))
+	elif physical and target.get_slice("_latch_", 0) in Hardware.RAM_KEYS:
+		var slot := Hardware.RAM_KEYS.find(target.get_slice("_latch_", 0))
+		if target.contains("_latch_"):
+			use_ram_latch(int(target.get_slice("_latch_", 1)), slot)
+		else:
+			use_ram_component(slot)
+	elif physical and (target in workshop.ledger.PART_NAMES or target == "storage2"):
 		selected = id
 		workshop.ledger.use_component(physical_pc_id, target, workshop.selected_part)
 	elif target.begins_with("screw_"):

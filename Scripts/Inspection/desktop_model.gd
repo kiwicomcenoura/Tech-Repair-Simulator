@@ -3,6 +3,9 @@ extends Node3D
 
 const PartVisuals := preload("res://Scripts/UI/part_visuals.gd")
 const Ledger := preload("res://Scripts/Gameplay/workshop_ledger.gd")
+const Hardware := preload("res://Scripts/Equipment/hardware_catalog.gd")
+const Peripherals := preload("res://Scripts/Equipment/peripheral_catalog.gd")
+const FanMotion := preload("res://Scripts/Equipment/fan_motion.gd")
 const DesktopCables := preload("res://Scripts/Inspection/desktop_cables.gd")
 const CHASSIS_ART := preload("res://Assets/Inspection/Layers/chassis.png")
 const COVER_ART := preload("res://Assets/Inspection/Layers/lid.png")
@@ -72,9 +75,8 @@ const EMPTY_MOUNTS := {
 	"gpu": [Vector3(-0.42, -0.24, 0.32), Vector2(1.32, 0.15)],
 	"psu": [Vector3(-0.64, -0.72, 0.416), Vector2(0.95, 0.35)],
 	"storage": [Vector3(0.80, -0.08, -0.17), Vector2(0.44, 0.60)],
-	"ram": [Vector3(0.03, 0.51, -0.21), Vector2(0.09, 0.55)],
-	"ram2": [Vector3(0.21, 0.51, -0.21), Vector2(0.09, 0.55)],
 }
+const RAM_X := [0.03, 0.21, 0.12, 0.30]
 const GRAPHITE := Color("303137")
 const STEEL := Color("959ba0")
 const BLACK := Color("1c1c20")
@@ -90,6 +92,7 @@ var _part_faces: Dictionary = {}
 var _mounts: Dictionary = {}
 var _empty_mounts: Dictionary = {}
 var _ram_latches: Array[Node3D] = []
+var _ram_sockets: Array[MeshInstance3D] = []
 var _cable_sources: Dictionary = {}
 var _cable_targets: Dictionary = {}
 var _pick_meshes: Array[MeshInstance3D] = []
@@ -99,6 +102,10 @@ var _cover: Node3D
 var _parked_cover: Node3D
 var _screws: Array[Node3D] = []
 var _power_led: MeshInstance3D
+var _fan_groups := {"case": [], "cooling": [], "gpu": [], "psu": []}
+var _fan_motion := FanMotion.new()
+var _fan_workshop: Node
+var _fan_pc := ""
 
 
 func _ready() -> void:
@@ -120,11 +127,15 @@ func update_parts(session: RefCounted) -> void:
 	var ledger: RefCounted
 	var selected_kind := ""
 	var pc_id: String = session.physical_pc_id
+	_fan_workshop = session.workshop
+	_fan_pc = pc_id
+	var ram_slots: Array = []
 	if is_instance_valid(session.workshop):
 		ledger = session.workshop.ledger
 		var pc: Dictionary = ledger.item(pc_id)
 		installed = pc.get("components", {})
 		powered = pc.get("power", false)
+		ram_slots = ledger.ram_slots(pc_id)
 		selected_kind = ledger.item(session.workshop.selected_part).get("kind", "")
 	_cover.visible = session.lid_attached
 	_parked_cover.visible = not session.lid_attached
@@ -137,9 +148,9 @@ func update_parts(session: RefCounted) -> void:
 		_parts[kind].visible = present
 		if present:
 			_part_faces[kind].material_override = _texture_material(_part_art(kind, ledger.item(installed[kind])))
-		var is_ram: bool = kind in ["ram", "ram2"]
+		var ram_slot := Hardware.RAM_KEYS.find(kind)
 		_empty_mounts[kind].visible = accessible and not present and (
-			installed.has("motherboard") if is_ram else selected_kind == kind
+			ram_slot in ram_slots if ram_slot >= 0 else selected_kind == kind
 		) and (kind != "cpu" or not installed.has("cooling"))
 		if not _mounts.has(kind):
 			continue
@@ -154,8 +165,13 @@ func update_parts(session: RefCounted) -> void:
 		for i in controls.connectors.size():
 			var connected: bool = state.connections[Ledger.CONNECTIONS[kind][i]]
 			var connector: Dictionary = controls.connectors[i]
+			if kind == "gpu" and i == 0 and not ledger.gpu_has_auxiliary(ledger.item(installed.gpu)):
+				for end: Dictionary in connector.ends: end.plug.hide()
+				ports.append(false)
+				continue
 			if connector.has("ends"):
 				for end: Dictionary in connector.ends:
+					end.plug.show()
 					end.plug.position = Vector3.ZERO if connected else end.offset
 			else:
 				connector.lever.rotation.x = 0.0 if connected else -0.94
@@ -163,14 +179,32 @@ func update_parts(session: RefCounted) -> void:
 		connected_ports[kind] = ports
 	_cables.visible = accessible
 	if accessible:
-		_cables.sync(installed, connected_ports)
-	if ledger != null and installed.has("motherboard"):
-		for slot in 2:
-			var clips: Array = ledger.ram_latches(pc_id, slot)
-			for i in 2:
-				var clip := _ram_latches[slot * 2 + i]
+		var gpu_auxiliary: bool = ledger.gpu_has_auxiliary(ledger.item(installed.get("gpu", "")))
+		_cables.sync(installed, connected_ports, gpu_auxiliary)
+	for slot in RAM_X.size():
+		_ram_sockets[slot].visible = slot in ram_slots
+		for i in 2:
+			var clip := _ram_latches[slot * 2 + i]
+			clip.visible = slot in ram_slots
+			if clip.visible:
+				var clips: Array = ledger.ram_latches(pc_id, slot)
 				clip.rotation.x = 0.0 if clips[i] else (-0.83 if i == 0 else 0.83)
 	_power_led.material_override = _material(LED if powered else STEEL)
+	for kind in _fan_groups:
+		var count: int = ledger.fan_count(pc_id, kind) if ledger != null else 0
+		for index in range(_fan_groups[kind].size()):
+			var fan: Dictionary = _fan_groups[kind][index]
+			fan.housing.visible = index < count
+			if kind == "gpu" and index < count:
+				fan.housing.position.x = -0.43 + (index - (count - 1) * 0.5) * (0.44 if count == 3 else 0.69)
+
+
+func _process(delta: float) -> void:
+	if not is_instance_valid(_fan_workshop): return
+	if not _fan_motion.advance(_fan_workshop.ledger, _fan_pc, delta): return
+	for kind in _fan_groups:
+		for index in range(_fan_groups[kind].size()):
+			_fan_groups[kind][index].rotor.rotation.y = _fan_motion.phase(kind, index)
 
 
 func _build_case() -> void:
@@ -200,7 +234,7 @@ func _build_front() -> void:
 	)
 	_box(self, Vector3(1.26, -0.10, 0), Vector3(0.035, 1.57, 0.79), BLACK)
 	for y in [-0.46, 0.29]:
-		_fan(self, Vector3(1.29, y, 0), 0.30, Vector3(0, 0, -PI / 2.0))
+		_fan(self, "case", Vector3(1.29, y, 0), 0.30, Vector3(0, 0, -PI / 2.0))
 	for index in 17:
 		_box(self, Vector3(1.35, -0.83 + float(index) * 0.089, 0), Vector3(0.02, 0.017, 0.75), GRAPHITE)
 	_box(self, Vector3(1.272, 0.78, 0), Vector3(0.035, 0.21, 0.81), BLACK)
@@ -219,7 +253,7 @@ func _build_rear() -> void:
 		var center := Vector3(-1.264, 0.23 + 0.13 * i, -0.25)
 		_box(self, center, Vector3(0.025, 0.08, 0.16), BLACK)
 		_box(self, center + Vector3(-0.014, -0.018, 0), Vector3(0.012, 0.012, 0.12), PCB)
-	_fan(self, Vector3(-1.26, 0.55, 0.12), 0.23, Vector3(0, 0, PI / 2.0))
+	_fan(self, "case", Vector3(-1.26, 0.55, 0.12), 0.23, Vector3(0, 0, PI / 2.0))
 	for i in 5:
 		var y := -0.36 + 0.109 * i
 		_box(self, Vector3(-1.238, y, 0.02), Vector3(0.025, 0.078, 0.72), GRAPHITE)
@@ -268,6 +302,7 @@ func _build_components() -> void:
 		_box(cooler, Vector3(-0.53, 0.51, -0.278 + i * 0.032), Vector3(0.47, 0.47, 0.021), STEEL)
 	_box(cooler, Vector3(COOLER_FRAME_EDGE_X - 0.235, 0.51, 0.015), Vector3(0.47, 0.47, 0.060), BLACK)
 	_part_faces.cooling = _face(cooler, Vector3(-0.53, 0.51, COOLER_FACE_Z), Vector2(0.47, 0.47))
+	_fan(cooler, "cooling", Vector3(-0.53, 0.51, COOLER_FACE_Z + 0.035), 0.19, Vector3(PI / 2.0, 0, 0))
 	# The fan's fixed lead exits a molded strain relief in the side of the frame.
 	var fan_lead := _group(cooler)
 	fan_lead.position = Vector3(COOLER_FRAME_EDGE_X, 0.655, 0.013)
@@ -277,15 +312,15 @@ func _build_components() -> void:
 	fan_exit.position.z = 0.016
 	fan_lead.add_child(fan_exit)
 	_cable_sources["cooling:0"] = {"wire_exit": fan_exit}
-	for slot in 2:
-		var x := 0.03 + 0.18 * slot
-		_box(board, Vector3(x, 0.51, -0.344), Vector3(0.105, 0.64, 0.038), BLACK)
-		var kind := "ram" if slot == 0 else "ram2"
+	for slot in RAM_X.size():
+		var x: float = RAM_X[slot]
+		_ram_sockets.append(_box(board, Vector3(x, 0.51, -0.344), Vector3(0.068, 0.64, 0.038), BLACK))
+		var kind: String = Hardware.RAM_KEYS[slot]
 		var ram := _part(kind)
-		_box(ram, Vector3(x, 0.51, -0.277), Vector3(0.075, 0.56, 0.112), PCB)
-		_part_faces[kind] = _face(ram, Vector3(x, 0.51, -0.209), Vector2(0.088, 0.56))
+		_box(ram, Vector3(x, 0.51, -0.277), Vector3(0.055, 0.56, 0.112), PCB)
+		_part_faces[kind] = _face(ram, Vector3(x, 0.51, -0.209), Vector2(0.061, 0.56))
 		for i in 4:
-			_box(ram, Vector3(x - 0.042, 0.33 + 0.118 * i, -0.277), Vector3(0.016, 0.077, 0.065), BLACK)
+			_box(ram, Vector3(x - 0.030, 0.33 + 0.118 * i, -0.277), Vector3(0.016, 0.077, 0.065), BLACK)
 	var gpu := _part("gpu")
 	_box(gpu, Vector3(GPU_POWER_FACE_X - 0.735, -0.23, -0.04), Vector3(1.47, 0.14, 0.66), GRAPHITE)
 	_box(gpu, Vector3(-0.43, -0.153, -0.04), Vector3(1.43, 0.020, 0.62), PCB)
@@ -299,11 +334,11 @@ func _build_components() -> void:
 	_box(gpu, Vector3(-0.72, -0.125, 0.11), Vector3(0.49, 0.008, 0.025), GOLD.darkened(0.26))
 	_print_detail(gpu, Vector3(-0.72, -0.121, 0.065), "PCIe  /  x16", 0.00145, Vector3(-PI / 2.0, 0, 0))
 	_part_faces.gpu = _face(gpu, Vector3(-0.43, -0.23, 0.292), Vector2(1.47, 0.14))
-	for x in [-0.78, -0.09]:
-		_fan(gpu, Vector3(x, -0.315, -0.04), 0.24, Vector3(PI, 0, 0))
+	for index in range(3):
+		_fan(gpu, "gpu", Vector3(-0.87 + 0.44 * index, -0.315, -0.04), 0.21, Vector3(PI, 0, 0))
 	var power := _part("psu")
 	_box(power, Vector3(-0.66, -0.72, 0), Vector3(1.04, 0.43, 0.81), BLACK)
-	_fan(power, Vector3(-0.69, -0.486, 0), 0.28, Vector3.ZERO)
+	_fan(power, "psu", Vector3(-0.88, -0.486, 0), 0.25, Vector3.ZERO)
 	_part_faces.psu = _face(power, Vector3(-0.66, -0.72, 0.407), Vector2(1.04, 0.43))
 	_box(power, Vector3(-1.218, -0.72, -0.18), Vector3(0.09, 0.205, 0.26), BLACK)
 	_box(power, Vector3(PSU_PANEL_X - 0.016, -0.72, 0), Vector3(0.032, 0.33, 0.67), GRAPHITE)
@@ -349,8 +384,11 @@ func _print_detail(parent: Node3D, center: Vector3, text: String, pixel_size: fl
 
 
 func _build_mounts() -> void:
-	for kind in EMPTY_MOUNTS:
-		var anchor: Array = EMPTY_MOUNTS[kind]
+	var mounts := EMPTY_MOUNTS.duplicate()
+	for slot in RAM_X.size():
+		mounts[Hardware.RAM_KEYS[slot]] = [Vector3(RAM_X[slot], 0.51, -0.21), Vector2(0.065, 0.55)]
+	for kind in mounts:
+		var anchor: Array = mounts[kind]
 		var mount := _group(self, StringName(kind))
 		var center: Vector3 = anchor[0]
 		var span: Vector2 = anchor[1]
@@ -390,10 +428,10 @@ func _build_mounts() -> void:
 		if kind == "psu":
 			connectors.append({"ends": _build_psu_ports(group)})
 		_mounts[kind] = {"group": group, "screws": screws, "connectors": connectors}
-	for slot in 2:
+	for slot in RAM_X.size():
 		for i in 2:
-			var id := StringName(("ram_latch_" if slot == 0 else "ram2_latch_") + str(i))
-			var anchor := Vector3(0.03 + 0.18 * slot, 0.835 if i == 0 else 0.185, -0.236)
+			var id := StringName("%s_latch_%d" % [Hardware.RAM_KEYS[slot], i])
+			var anchor := Vector3(RAM_X[slot], 0.835 if i == 0 else 0.185, -0.236)
 			_ram_latches.append(_latch(_parts.motherboard, id, anchor, false))
 
 
@@ -485,13 +523,17 @@ func pick_mesh(origin: Vector3, direction: Vector3) -> MeshInstance3D:
 func _part_art(kind: String, record: Dictionary) -> Texture2D:
 	match kind:
 		"motherboard":
-			return PartVisuals.board_texture(record.get("board_art", ""), PART_ART.motherboard)
+			return PartVisuals.board_artwork(record, false)
 		"cpu":
-			if record.get("socket") == "AX4":
-				return PartVisuals.AMDERA_CPU
-		"ram", "ram2":
-			var finish: String = record.get("heat_spreader_color", "")
-			return PartVisuals.ram_heat_spreader(finish, true) if Ledger.HEAT_SPREADERS.has(finish) else PART_ART.ram
+			return PartVisuals.cpu_artwork(record)
+		"cooling":
+			return PartVisuals.cooler_artwork(record)
+		"gpu":
+			return PartVisuals.gpu_side_artwork(record)
+		"storage":
+			return PartVisuals.peripheral_artwork(record)
+		"ram", "ram2", "ram3", "ram4":
+			return PartVisuals.memory_artwork(record, true)
 	return PART_ART[kind]
 
 
@@ -528,17 +570,19 @@ func _build_metal_finish() -> void:
 	_metal_normal.bump_strength = 1.5
 
 
-func _fan(parent: Node3D, center: Vector3, radius: float, rotation_angles: Vector3) -> void:
+func _fan(parent: Node3D, kind: String, center: Vector3, radius: float, rotation_angles: Vector3) -> void:
 	var fan := _group(parent)
 	fan.position = center
 	fan.rotation = rotation_angles
 	_disk(fan, Vector3.ZERO, radius, 0.026, BLACK)
+	var rotor := _group(fan)
 	for i in 7:
-		var blade := _group(fan)
+		var blade := _group(rotor)
 		blade.rotation.y = TAU * float(i) / 7.0
 		var mesh := _box(blade, Vector3(radius * 0.55, 0.020, 0), Vector3(radius * 0.62, 0.018, radius * 0.22), STEEL)
 		mesh.rotation.y = -0.35
 	_disk(fan, Vector3(0, 0.033, 0), radius * 0.26, 0.021, GRAPHITE)
+	_fan_groups[kind].append({"housing": fan, "rotor": rotor})
 
 
 func _fastener(parent: Node3D, center: Vector3) -> void:

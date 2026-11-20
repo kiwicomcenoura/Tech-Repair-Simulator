@@ -4,10 +4,13 @@ signal return_requested
 
 const VideoScreen := preload("res://Scripts/UI/bench_video_screen.gd")
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
+const Hardware := preload("res://Scripts/Equipment/hardware_catalog.gd")
+const InstallerScreen := preload("res://Scripts/UI/techos_installer.gd")
 const PREVIEW_HELP := "Clique para usar a ferramenta · Arraste para girar · Roda para zoom · Botão direito para restaurar."
 
 var session: RefCounted
 var _inventory: OptionButton
+var _unpack_cabinet: Button
 var _inventory_ids: Array = []
 var _power: Button
 var _access_os: Button
@@ -15,6 +18,11 @@ var _os_view: PanelContainer
 var _os_screen: Control
 var _client_desktop: Control
 var _video_effects: Control
+var _installer: PanelContainer
+var _media_bar: HBoxContainer
+var _monitor_usb: Button
+var _boot_usb: Button
+var _bench_usb: Button
 var _memory_test: Button
 var _workshop: Node
 var _case_picker: MenuButton
@@ -118,7 +126,7 @@ func _build_physical_controls() -> void:
 		if session != null and is_instance_valid(session.workshop): session.workshop.ledger.toggle_power(session.physical_pc_id))
 	_access_os = Button.new()
 	_access_os.name = "AccessClientOS"
-	_access_os.text = "Acessar SO"
+	_access_os.text = Prefs.t("Abrir monitor")
 	_access_os.custom_minimum_size.y = 40
 	header.add_child(_access_os)
 	header.move_child(_access_os, 2)
@@ -127,9 +135,25 @@ func _build_physical_controls() -> void:
 	_os_view.name = "ClientOS"
 	_os_view.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	add_child(_os_view)
+	var monitor := VBoxContainer.new()
+	_os_view.add_child(monitor)
+	_media_bar = HBoxContainer.new()
+	_media_bar.alignment = BoxContainer.ALIGNMENT_END
+	monitor.add_child(_media_bar)
+	_monitor_usb = _usb_button("MonitorInstallUSB")
+	_media_bar.add_child(_monitor_usb)
+	_boot_usb = Button.new()
+	_boot_usb.name = "BootInstallUSB"
+	_boot_usb.text = Prefs.t("Iniciar pelo pendrive")
+	_boot_usb.custom_minimum_size.y = 36
+	_boot_usb.pressed.connect(func() -> void:
+		if session != null and is_instance_valid(session.workshop) and session.workshop.ledger.boot_install_usb(session.physical_pc_id):
+			_installer.focus_target())
+	_media_bar.add_child(_boot_usb)
 	var display := Control.new()
 	display.clip_contents = true
-	_os_view.add_child(display)
+	display.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	monitor.add_child(display)
 	_os_screen = VideoScreen.new()
 	_os_screen.name = "ClientDisplay"
 	display.add_child(_os_screen)
@@ -141,9 +165,7 @@ func _build_physical_controls() -> void:
 	_client_desktop.exit_requested.connect(func() -> void: close_client_os())
 	_client_desktop.shutdown_requested.connect(func() -> void: session.workshop.ledger.toggle_power(session.physical_pc_id))
 	_client_desktop.client_app_installed.connect(func(id: String) -> void:
-		var pc: Dictionary = session.workshop.ledger.item(session.physical_pc_id)
-		if not pc.has("client_apps"): pc.client_apps = []
-		pc.client_apps.append(id))
+		session.workshop.ledger.install_client_app(session.physical_pc_id, id))
 	display.add_child(_client_desktop)
 	_client_desktop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_video_effects = VideoScreen.new()
@@ -152,6 +174,10 @@ func _build_physical_controls() -> void:
 	_video_effects.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	display.add_child(_video_effects)
 	_video_effects.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_installer = InstallerScreen.new()
+	_installer.name = "TechOSInstallerScreen"
+	display.add_child(_installer)
+	_installer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_os_view.hide()
 	_memory_test = Button.new()
 	_memory_test.name = "MemoryTest"
@@ -164,45 +190,104 @@ func _build_physical_controls() -> void:
 	var sidebar: VBoxContainer = $Workspace/ToolsPanel/ToolScroll/Content
 	var label := Label.new()
 	label.name = "RAMStockLabel"
-	label.text = "PEÇAS · INVENTÁRIO / BANDEJA"
+	label.text = Prefs.t("PEÇAS · ARMÁRIO E BANCADA")
 	label.theme_type_variation = &"Eyebrow"
 	sidebar.add_child(label)
-	sidebar.move_child(label, sidebar.get_node("SelectionDivider").get_index())
+	sidebar.move_child(label, sidebar.get_node("ToolSelection").get_index())
 	_inventory = OptionButton.new()
 	_inventory.name = "RAMInventory"
 	_inventory.custom_minimum_size = Vector2(0, 36)
 	_inventory.clip_text = true
+	_inventory.fit_to_longest_item = false
 	sidebar.add_child(_inventory)
 	sidebar.move_child(_inventory, label.get_index() + 1)
+	_unpack_cabinet = Button.new()
+	_unpack_cabinet.name = "UnpackCabinetPart"
+	_unpack_cabinet.text = Prefs.t("Desembalar peça")
+	_unpack_cabinet.hide()
+	_unpack_cabinet.pressed.connect(func() -> void:
+		if session == null or not is_instance_valid(session.workshop): return
+		var ledger: RefCounted = session.workshop.ledger
+		var part: Dictionary = ledger.item(session.workshop.selected_part)
+		if part.get("location") == "shelf" and ledger.unpack(part.id) and part.kind == "ram":
+			session.workshop.selected_ram = part.id)
+	sidebar.add_child(_unpack_cabinet)
+	sidebar.move_child(_unpack_cabinet, _inventory.get_index() + 1)
 	_inventory.item_selected.connect(func(index: int) -> void:
 		if session == null or not is_instance_valid(session.workshop) or index >= _inventory_ids.size(): return
-		session.workshop.selected_ram = _inventory_ids[index]
-		session.workshop.selected_part = _inventory_ids[index]
+		var id: String = _inventory_ids[index]
+		var ledger: RefCounted = session.workshop.ledger
+		var part: Dictionary = ledger.item(id)
+		session.workshop.selected_part = id
+		session.workshop.selected_ram = id if id in ledger.available_ram() else ""
 		if preview.visible: preview.show_session(session)
-		if _inventory_ids[index] == "": return
-		_inventory.tooltip_text = session.workshop.ledger.known_description(_inventory_ids[index])
-		session.notice.emit("Peça selecionada. Com Mãos, clique no encaixe vazio correspondente; depois fixe e reconecte.", false))
+		_update_selected_stock(ledger, part)
+		if part.is_empty(): return
+		var hint := "Desembale a peça do armário para instalar." if part.packaged else "Peça selecionada. Com Mãos, clique no encaixe vazio correspondente; depois fixe e reconecte."
+		session.notice.emit(Prefs.t(hint), false))
+	_bench_usb = _usb_button("BenchInstallUSB")
+	var case_header: HBoxContainer = $Workspace/CasePanel/Content/Header
+	case_header.add_child(_bench_usb)
+	case_header.move_child(_bench_usb, %PreviewToggle.get_parent().get_index())
+
+
+func _usb_button(node_name: String) -> Button:
+	var button := Button.new()
+	button.name = node_name
+	button.custom_minimum_size.y = 28
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.add_theme_font_size_override("font_size", 12)
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	for state in ["normal", "hover", "pressed", "disabled", "focus"]:
+		var style: StyleBox = get_theme_stylebox(state, "Button").duplicate()
+		for side in [SIDE_TOP, SIDE_BOTTOM]: style.set_content_margin(side, 4.0)
+		for side in [SIDE_LEFT, SIDE_RIGHT]: style.set_content_margin(side, 8.0)
+		button.add_theme_stylebox_override(state, style)
+	button.pressed.connect(func() -> void:
+		if session != null and is_instance_valid(session.workshop):
+			session.workshop.ledger.toggle_install_usb(session.physical_pc_id))
+	return button
+
+
+func _refresh_usb_buttons(model: RefCounted, pc: Dictionary) -> void:
+	var ready: bool = model.state.get("install_usb_ready", false)
+	var connected: bool = pc.get("install_usb", false)
+	var busy: bool = pc.get("installation", {}).get("phase") == "copying"
+	for button in [_bench_usb, _monitor_usb]:
+		button.text = Prefs.t("Retirar USB" if connected else "Conectar USB")
+		button.tooltip_text = Prefs.t("Retirar pendrive" if connected else "Conectar pendrive")
+		button.disabled = busy
+	_bench_usb.visible = ready
+	_media_bar.visible = ready
+	_boot_usb.visible = not pc.has("installation")
+	_boot_usb.disabled = not model.can_boot_install_usb(pc.id)
+	_boot_usb.tooltip_text = Prefs.t("Conecte o pendrive e conclua o POST.") if _boot_usb.disabled else ""
 
 
 func _refresh_physical() -> void:
 	var physical := session != null and is_instance_valid(session.workshop)
 	_power.visible = physical
 	_access_os.visible = physical
+	_bench_usb.visible = false
 	_memory_test.visible = physical and not _os_view.visible
 	_inventory.visible = physical
+	_unpack_cabinet.hide()
 	_inventory.get_parent().get_node("RAMStockLabel").visible = physical
 	%SelectedInfo.visible = not physical
 	%SelectedName.get_parent().get_node("SelectionHeading").visible = not physical
 	if not physical: return
 	var model: RefCounted = session.workshop.ledger
 	var pc: Dictionary = model.item(session.physical_pc_id)
-	_client_desktop.set_running(pc.power)
+	_refresh_usb_buttons(model, pc)
+	_client_desktop.set_running(pc.power and not pc.has("installation"))
+	var apps: Array = model.client_apps(pc.id)
+	if _client_desktop.installed_apps != apps: _client_desktop.set_client_apps(apps)
 	_power.text = "Desligar PC" if pc.power else "Ligar PC"
 	var power_reason: String = model.assembly_power_block_reason(session.physical_pc_id)
 	_power.disabled = not power_reason.is_empty()
 	_power.tooltip_text = power_reason
 	_access_os.disabled = not pc.power and not _os_view.visible
-	_access_os.tooltip_text = "Ligue o PC para acessar a tela do cliente." if _access_os.disabled else ""
+	_access_os.tooltip_text = Prefs.t("Ligue o PC para acessar o monitor.") if _access_os.disabled else ""
 	var test_reason: String = model.ram_test_block_reason(session.physical_pc_id)
 	_memory_test.disabled = not test_reason.is_empty()
 	_memory_test.tooltip_text = test_reason if not test_reason.is_empty() else "Diagnóstico de memória após o POST; também identifica módulos defeituosos que impedem o boot."
@@ -213,14 +298,24 @@ func _refresh_physical() -> void:
 		$InspectionHeader/Titles/Eyebrow.text = Prefs.t("INSPEÇÃO VISUAL  /  %s") % pc.model if pc.has("case_key") else "INSPEÇÃO VISUAL  /  DESKTOP ATX"
 	%Phillips.disabled = not model.state.tools
 	_inventory.clear()
-	var available: Array = model.available_parts()
+	var available: Array = model.available_parts("", true)
+	available.sort_custom(func(a: String, b: String) -> bool:
+		var left: Dictionary = model.item(a)
+		var right: Dictionary = model.item(b)
+		var left_rank: int = model.BENCH_PART_LOCATIONS.find(left.location)
+		var right_rank: int = model.BENCH_PART_LOCATIONS.find(right.location)
+		if left_rank != right_rank: return left_rank < right_rank
+		if left.location == "shelf": return int(left.shelf_slot) < int(right.shelf_slot)
+		return str(left.model).naturalnocasecmp_to(str(right.model)) < 0)
 	_inventory_ids = [""]
-	_inventory.add_item("Selecione uma peça" if not available.is_empty() else "Traga uma peça desembalada")
+	_inventory.add_item(Prefs.t("Selecione uma peça" if not available.is_empty() else "Nenhuma peça disponível"))
 	for id in available:
 		_inventory_ids.append(id)
 		var record: Dictionary = model.item(id)
-		var origin := Prefs.t({"installed": "retirada do PC", "receiving": "kit recebido", "purchase": "comprada"}.get(record.get("origin", ""), ""))
-		_inventory.add_item(record.model + " · " + origin)
+		var source := Prefs.t({"shelf": "Armário", "inventory": "Inventário", "tray": "Bandeja", "carried": "Nas mãos"}[record.location])
+		if record.location == "shelf": source += " %02d" % (int(record.shelf_slot) + 1)
+		if record.packaged: source += " · " + Prefs.t("Embalado")
+		_inventory.add_item("%s · %s" % [source, record.model])
 		_inventory.get_popup().set_item_tooltip(_inventory.item_count - 1, model.known_description(id))
 	_inventory.disabled = available.is_empty()
 	var selected: int = _inventory_ids.find(session.workshop.selected_part)
@@ -228,6 +323,12 @@ func _refresh_physical() -> void:
 		_inventory.select(selected)
 	else:
 		_inventory.select(0)
+	_update_selected_stock(model, model.item(session.workshop.selected_part))
+
+
+func _update_selected_stock(model: RefCounted, part: Dictionary) -> void:
+	_unpack_cabinet.visible = part.get("location") == "shelf" and part.get("packaged", false)
+	_inventory.tooltip_text = "" if part.is_empty() else model.known_description(part.id)
 
 
 func configure(value: RefCounted) -> void:
@@ -242,7 +343,7 @@ func configure(value: RefCounted) -> void:
 	if device_changed:
 		var apps: Array = []
 		if session != null and is_instance_valid(session.workshop):
-			apps = session.workshop.ledger.item(session.physical_pc_id).get("client_apps", [])
+			apps = session.workshop.ledger.client_apps(session.physical_pc_id)
 		_client_desktop.set_client_apps(apps)
 	canvas.configure(session)
 	if device_changed:
@@ -290,20 +391,29 @@ func _process(_delta: float) -> void:
 
 
 func _update_client_display() -> void:
-	var status: String = session.workshop.ledger.video_status(session.physical_pc_id)
+	var model: RefCounted = session.workshop.ledger
+	var status: String = model.video_status(session.physical_pc_id)
 	_os_screen.status = status
 	_client_desktop.visible = status in ["desktop", "artifacts"]
-	_os_screen.visible = not _client_desktop.visible
+	_os_screen.visible = not _client_desktop.visible and status != "installer"
 	_video_effects.visible = status == "artifacts"
-	$InspectionHeader/Titles/Description.text = VideoScreen.STATUS[status]
+	_installer.update_screen(model, session.physical_pc_id)
+	_installer.visible = status == "installer"
+	var description := Prefs.t(VideoScreen.STATUS[status])
+	if status == "firmware":
+		var pc: Dictionary = model.item(session.physical_pc_id)
+		description = model.localized_boot_result(pc)
+		if pc.boot_result == model.NO_BOOT_SYSTEM and not model.state.get("install_usb_ready", false):
+			description += " " + Prefs.t("Prepare o pendrive no Instalador TechOS do computador da oficina.")
+	$InspectionHeader/Titles/Description.text = description
 
 
 func _show_client_os(active: bool, restore_focus: bool = true) -> void:
 	_os_view.visible = active
 	$Workspace.visible = not active
 	$ContextPanel.visible = not active
-	_access_os.text = "Voltar à inspeção" if active else "Acessar SO"
-	$InspectionHeader/Titles/Eyebrow.text = "TELA DO PC DO CLIENTE" if active else "INSPEÇÃO VISUAL  /  DESKTOP ATX"
+	_access_os.text = Prefs.t("Voltar à inspeção" if active else "Abrir monitor")
+	$InspectionHeader/Titles/Eyebrow.text = Prefs.t("MONITOR DA BANCADA") if active else "INSPEÇÃO VISUAL  /  DESKTOP ATX"
 	_refresh_physical()
 	if not restore_focus: return
 	if _access_os.disabled: _power.grab_focus()
@@ -317,7 +427,7 @@ func close_client_os(restore_focus: bool = true) -> bool:
 
 
 func handle_client_escape() -> bool:
-	return _os_view.visible and (_client_desktop.dismiss_popup() or close_client_os())
+	return _os_view.visible and (_installer.cancel_confirmation() or _client_desktop.dismiss_popup() or close_client_os())
 
 
 func _refresh() -> void:
@@ -334,10 +444,11 @@ func _refresh() -> void:
 	%LidStatus.text = "Tampa instalada" if session.lid_attached else "Tampa retirada"
 	%LidAction.text = "Retirar tampa" if session.lid_attached else "Recolocar tampa"
 	%SelectedName.text = canvas.part_name(session.selected)
-	if is_instance_valid(session.workshop) and session.selected in [&"ram",&"ram2"]:
+	var ram_slot := Hardware.RAM_KEYS.find(str(session.selected))
+	if is_instance_valid(session.workshop) and ram_slot >= 0:
 		var pc: Dictionary = session.workshop.ledger.item(session.physical_pc_id)
 		var ram: Dictionary = session.workshop.ledger.item(pc.components.get(str(session.selected), ""))
-		%SelectedName.text = ("Slot A1 vazio" if session.selected == &"ram" else "Slot A2 vazio") if ram.is_empty() else ram.model
+		%SelectedName.text = "Slot %s vazio" % Hardware.RAM_LABELS[ram_slot] if ram.is_empty() else ram.model
 	if String(session.selected).begins_with("screw_"):
 		var index := int(String(session.selected).trim_prefix("screw_"))
 		%SelectedName.text = "Parafuso %d — %s" % [index + 1, "fixado" if session.screws[index] else "retirado"]

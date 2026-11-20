@@ -10,12 +10,13 @@ const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const WINDOW := preload("res://Scenes/UI/TechOS/AppWindow.tscn")
 const ICON := preload("res://Scripts/TechOS/app_icon.gd")
 const APPS := {
-	"messages": {"title": "Mensagens", "empty_title": "Nenhuma conversa", "description": "As conversas simuladas da oficina aparecerão aqui.\nO aplicativo ainda não possui mensagens ou conexão externa."},
+	"messages": {"title": "Email", "empty_title": "Caixa de entrada", "description": "Converse com os contatos da oficina."},
 	"clients": {"title": "Clientes", "empty_title": "Nenhum cliente cadastrado", "description": "Este espaço está preparado para os futuros clientes e pedidos de manutenção.\nNenhum cadastro foi criado."},
 	"shop": {"title": "Loja de Peças", "empty_title": "Catálogo indisponível", "description": "A loja de peças será disponibilizada em uma etapa futura.\nNenhuma compra pode ser realizada."},
 	"finances": {"title": "Finanças", "empty_title": "Extrato em preparação", "description": "O relatório financeiro detalhado ainda não foi implementado.\nAs compras de RAM são debitadas no saldo do TechMarket."},
 	"marketing": {"title": "Marketing", "empty_title": "Nenhuma campanha", "description": "Um espaço para as futuras ações de divulgação da oficina.\nNenhuma campanha está ativa."},
 	"files": {"title": "Arquivos", "empty_title": "Esta pasta está vazia", "description": "Os arquivos fictícios do jogo ficarão organizados aqui.\nEste aplicativo não acessa os arquivos reais do computador."},
+	"installer": {"title": "Instalador TechOS", "empty_title": "Pendrive de instalação", "description": "Prepare o pendrive reutilizável da oficina para instalar o TechOS em um SSD na bancada."},
 }
 
 var windows: Dictionary = {}
@@ -86,7 +87,7 @@ func _make_launcher(id: String, menu: bool) -> Button:
 	button.name = ("Menu_" if menu else "Icon_") + id
 	button.theme_type_variation = &"LauncherButton"
 	button.custom_minimum_size = Vector2(0, 42) if menu else Vector2(104, 94)
-	button.tooltip_text = _definition(id).title
+	button.tooltip_text = Prefs.t(_definition(id).title)
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	var container: BoxContainer = HBoxContainer.new() if menu else VBoxContainer.new()
 	button.add_child(container)
@@ -102,7 +103,7 @@ func _make_launcher(id: String, menu: bool) -> Button:
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	container.add_child(icon)
 	var label := Label.new()
-	label.text = _definition(id).title
+	label.text = Prefs.t(_definition(id).title)
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT if menu else HORIZONTAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 13)
@@ -180,6 +181,22 @@ func open_app(id: String) -> Control:
 			market.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			window.get_node("Layout/BodyMargin/Body/Main").add_child(scroll)
 			scroll.add_child(market)
+	if id == "installer":
+		var workshop: Node = get_tree().root.find_child("PhysicalWorkshop", true, false)
+		if workshop != null: _build_install_media(window, workshop.ledger)
+	if id == "messages":
+		var workshop: Node = get_tree().root.find_child("PhysicalWorkshop", true, false)
+		if workshop != null:
+			window.preferred_size = Vector2(870, 550)
+			window.get_node("Layout/BodyMargin/Body/Sidebar").hide()
+			window.get_node("Layout/FooterMargin").hide()
+			var main := window.get_node("Layout/BodyMargin/Body/Main")
+			main.get_node("EmptyCard").hide()
+			main.get_node("SectionTitle").hide()
+			var email := preload("res://Scripts/TechOS/email_app.gd").new()
+			email.ledger = workshop.ledger
+			email.desktop = self
+			main.add_child(email)
 	window.fit_to_area()
 	window.position = Vector2(235 + windows.size() * 24, 34 + windows.size() * 22) if client_mode else Vector2(250 + windows.size() * 30, 48 + windows.size() * 25)
 	window.clamp_position()
@@ -189,7 +206,7 @@ func open_app(id: String) -> Control:
 	windows[id] = window
 	var task := Button.new()
 	task.name = "Task_" + id
-	task.text = _definition(id).title
+	task.text = Prefs.t(_definition(id).title)
 	task.custom_minimum_size = Vector2(100, 36)
 	task.toggle_mode = true
 	task.tooltip_text = task.text + " · alternar / minimizar"
@@ -202,14 +219,41 @@ func open_app(id: String) -> Control:
 	return window
 
 
+func _build_install_media(window: Control, ledger: RefCounted) -> void:
+	window.preferred_size = Vector2(570, 355)
+	window.get_node("Layout/BodyMargin/Body/Sidebar").hide()
+	window.get_node("Layout/FooterMargin").hide()
+	var title: Label = window.get_node("%EmptyTitle")
+	var description: Label = window.get_node("%EmptyDescription")
+	var prepare := Button.new()
+	prepare.name = "PrepareInstallUSB"
+	prepare.text = Prefs.t("Criar pendrive de instalação")
+	prepare.custom_minimum_size.y = 42
+	title.get_parent().add_child(prepare)
+	var refresh := func() -> void:
+		var ready: bool = ledger.state.get("install_usb_ready", false)
+		title.text = Prefs.t("Pendrive pronto" if ready else "Pendrive de instalação")
+		description.text = Prefs.t("Na inspeção da bancada, conecte o pendrive ao PC e abra o monitor depois do POST.") if ready else Prefs.t(APPS.installer.description)
+		prepare.disabled = ready
+	prepare.pressed.connect(func() -> void: ledger.prepare_install_usb())
+	ledger.changed.connect(refresh)
+	window.tree_exited.connect(func() -> void:
+		if ledger.changed.is_connected(refresh): ledger.changed.disconnect(refresh))
+	refresh.call()
+
+
 func _activate(id: String) -> void:
 	if not windows.has(id):
 		return
+	var changed := active_app != id
 	active_app = id
 	%WindowsArea.move_child(windows[id], -1)
 	for key in windows:
 		windows[key].set_active(key == id)
 		task_buttons[key].set_pressed_no_signal(key == id and windows[key].visible)
+	if changed and id == "messages":
+		var email: Node = windows[id].find_child("WorkshopEmail", true, false)
+		if email != null: email.refresh()
 
 
 func _task_clicked(id: String) -> void:

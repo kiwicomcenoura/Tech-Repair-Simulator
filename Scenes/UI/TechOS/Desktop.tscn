@@ -164,10 +164,16 @@ theme_type_variation = &"Muted"
 [node name="Separator" type="HSeparator" parent="StartMenu/Content"]
 layout_mode = 2
 
-[node name="MenuApps" type="VBoxContainer" parent="StartMenu/Content"]
-unique_name_in_owner = true
+[node name="AppScroll" type="ScrollContainer" parent="StartMenu/Content"]
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="MenuApps" type="VBoxContainer" parent="StartMenu/Content/AppScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
 [node name="FooterDivider" type="HSeparator" parent="StartMenu/Content"]

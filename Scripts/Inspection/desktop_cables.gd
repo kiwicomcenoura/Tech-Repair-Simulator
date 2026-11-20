@@ -78,10 +78,11 @@ func build(chassis: Node3D, sources: Dictionary, targets: Dictionary) -> void:
 		_bundles.append(variants)
 
 
-func sync(components: Dictionary, mounts: Dictionary) -> void:
+func sync(components: Dictionary, mounts: Dictionary, gpu_auxiliary: bool = true) -> void:
 	for index in ROUTES.size():
 		var route := ROUTES[index]
 		var available: bool = components.has(route.target) and (route.source == "" or components.has(route.source))
+		if route.target == "gpu" and route.port == 0 and not gpu_auxiliary: available = false
 		if route.get("board_header", false):
 			available = available and components.has("motherboard")
 		var variant := 0

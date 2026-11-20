@@ -183,8 +183,8 @@ func verify_catalog() -> void:
 	tower.screws = [false, false, false, false]
 	model.unpack(ids[1])
 	check(not model.use_component(tower.id, "motherboard", ids[1]), "A loose board on the floor is outside the inspection inventory")
-	model.move(ids[1], "tray")
-	check(model.use_component(tower.id, "motherboard", ids[1]) and model.valid(model.state), "An ATX board fits and saves in the ATX tower")
+	model.move(ids[1], "shelf")
+	check(model.use_component(tower.id, "motherboard", ids[1]) and model.valid(model.state), "The ATX tower takes an unpacked board directly from the cabinet")
 	check(not model.sell(tower.id) and not model.sell(ids[1]), "Installed boards and the cabinets containing them cannot be sold")
 	model.use_component(tower.id, "motherboard", "")
 	check(model.sell(tower.id) and model.state.credits == 191 and model.item(ids[1]).location == "tray"
@@ -194,6 +194,8 @@ func verify_catalog() -> void:
 func buy_in_shop(market: Node, product: String) -> String:
 	var credits: int = ledger.state.credits
 	var before: int = ledger.state.items.size()
+	market.products.get_parent().ensure_control_visible(market._buttons[product])
+	await frames()
 	await click(market._buttons[product])
 	check(market.confirmation.visible and ledger.state.credits == credits, "Checkout waits for confirmation: " + product)
 	await click(market.confirmation.get_ok_button())
@@ -326,8 +328,8 @@ func run() -> void:
 	check(not ledger.move(matx, "shelf") and not ledger.move(matx, "floor"), "An installed board cannot be moved through the loose-item API")
 	check(not true in ledger.mounts(case_id, "motherboard").screws, "Newly positioned board needs all screws")
 	await key(KEY_2)
-	for point: Vector2 in canvas.SCREW_POINTS.motherboard:
-		await click_at(canvas_point(point))
+	for index in range(canvas.SCREW_POINTS.motherboard.size()):
+		await click_at(canvas_point(canvas.mount_point("motherboard", index, false)))
 	check(not false in ledger.mounts(case_id, "motherboard").screws, "Phillips secures every motherboard screw")
 	check(not ledger.toggle_power(case_id) and not ledger.request_post(case_id) and not ledger.item(case_id).power, "A board alone does not permit POST or power on")
 	check(ledger.valid(ledger.state) and workshop.dock.get_equipment().components.get("motherboard") == matx, "Equipment record and save share the installed ID")
@@ -372,8 +374,8 @@ func run() -> void:
 	await click_at(canvas_point(motherboard_point))
 	check(ledger.item(matx).location == "installed", "Fastened board cannot be pulled away")
 	await key(KEY_2)
-	for point: Vector2 in canvas.SCREW_POINTS.motherboard:
-		await click_at(canvas_point(point))
+	for index in range(canvas.SCREW_POINTS.motherboard.size()):
+		await click_at(canvas_point(canvas.mount_point("motherboard", index, false)))
 	await key(KEY_1)
 	await click_at(canvas_point(motherboard_point))
 	check(ledger.item(case_id).components.is_empty() and ledger.item(matx).location == "tray"
@@ -408,7 +410,7 @@ func complete_build(case_id: String) -> void:
 	var view: Control = bench.inspection
 	var canvas: Control = view.canvas
 	var pc: Dictionary = ledger.item(case_id)
-	var products := {"ram": "DDR5", "cooling": "intara_breeze_92", "gpu": "gpu", "storage": "storage", "psu": "psu"}
+	var products := {"ram": "DDR4", "cooling": "intara_breeze_92", "gpu": "gpu", "storage": "storage", "psu": "psu"}
 	for kind in products:
 		var bought: bool = ledger.purchase(products[kind])
 		check(bought, "Purchase a remaining component for the full build: " + kind)
@@ -423,17 +425,19 @@ func complete_build(case_id: String) -> void:
 			await click_at(canvas_point(canvas.RAM_SLOT.get_center()))
 			for latch: Vector2 in canvas.LATCHES: await click_at(canvas_point(latch))
 		else:
-			await click_at(canvas_point(canvas.MOUNT_RECTS[kind].get_center()))
+			await click_at(canvas_point(canvas.mount_rect(kind, pc).get_center()))
 			if pc.components.get(kind) == id:
 				await key(KEY_2)
-				for point: Vector2 in canvas.SCREW_POINTS[kind]: await click_at(canvas_point(point))
+				for index in range(canvas.SCREW_POINTS[kind].size()):
+					await click_at(canvas_point(canvas.mount_point(kind, index, false)))
 				await key(KEY_1)
-				for point: Vector2 in canvas.CONNECTOR_POINTS[kind]: await click_at(canvas_point(point))
+				for index in range(canvas.CONNECTOR_POINTS[kind].size()):
+					await click_at(canvas_point(canvas.mount_point(kind, index, true)))
 		check(pc.components.get(kind) == id and ledger.item(id).owner_pc == case_id and id not in ledger.at("inventory"),
 			"Original inspection installs the part into the purchased cabinet without duplication: " + kind)
 	check(not ledger.request_post(case_id), "Complete but disconnected build cannot start POST")
-	for point: Vector2 in canvas.CONNECTOR_POINTS.motherboard:
-		await click_at(canvas_point(point))
+	for index in range(canvas.CONNECTOR_POINTS.motherboard.size()):
+		await click_at(canvas_point(canvas.mount_point("motherboard", index, true)))
 	check(ledger.valid(JSON.parse_string(JSON.stringify(ledger.state))), "All assembled parts and fastenings survive JSON validation")
 	check(not view._power.disabled, "Original inspection allows power once the build is complete")
 	await click(view._power)

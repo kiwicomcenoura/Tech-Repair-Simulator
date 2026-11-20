@@ -4,6 +4,7 @@ extends CanvasLayer
 const Prefs := preload("res://Scripts/UI/player_preferences.gd")
 const VideoScreen := preload("res://Scripts/UI/bench_video_screen.gd")
 const Cases := preload("res://Scripts/Equipment/case_catalog.gd")
+const Hardware := preload("res://Scripts/Equipment/hardware_catalog.gd")
 
 signal opened
 signal closed
@@ -110,7 +111,7 @@ func _build_test_controls() -> void:
 	_component_picker.name = "ComponentTestPicker"
 	_component_picker.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	for kind in ["cpu", "gpu", "motherboard", "storage", "psu", "cooling"]:
-		_component_picker.add_item(preload("res://Scripts/Gameplay/workshop_ledger.gd").PART_NAMES[kind])
+		_component_picker.add_item(preload("res://Scripts/Gameplay/workshop_ledger.gd").component_label(kind))
 		_component_picker.set_item_metadata(_component_picker.item_count - 1, kind)
 	extra.add_child(_component_picker)
 	_component_test = Button.new()
@@ -157,6 +158,7 @@ func _update_tests() -> void:
 	diagnostic.text = "Iniciar POST" if available else "Iniciar diagnóstico"
 	_test_power_button.text = "Ligar PC"
 	if not available:
+		_update_secondary_drive_option(false)
 		_update_video("off", "Coloque um computador na bancada.")
 		_ram_test_button.disabled = true
 		_test_help.text = "Coloque um computador físico na bancada para liberar os testes."
@@ -170,6 +172,7 @@ func _update_tests() -> void:
 		return
 	var model: RefCounted = s.workshop.ledger
 	var pc: Dictionary = model.item(s.physical_pc_id)
+	_update_secondary_drive_option(pc.components.has("storage2"))
 	_update_video(model.video_status(s.physical_pc_id), model.component_test_block_reason(s.physical_pc_id, "gpu"))
 	_layout.get_node("Actions/Context/Reason").text = "Inspeção, desmontagem e testes de componentes."
 	var busy := float(pc.boot_remaining) > 0
@@ -182,7 +185,7 @@ func _update_tests() -> void:
 	diagnostic.disabled = busy
 	_test_power_button.text = "Desligar PC" if pc.power else "Ligar PC"
 	var power_reason: String = model.assembly_power_block_reason(s.physical_pc_id)
-	_post_button.disabled = busy or not power_reason.is_empty()
+	_post_button.disabled = busy or pc.has("installation") or not power_reason.is_empty()
 	diagnostic.disabled = _post_button.disabled
 	_test_power_button.disabled = not power_reason.is_empty()
 	_post_button.tooltip_text = power_reason
@@ -192,30 +195,58 @@ func _update_tests() -> void:
 	_ram_test_button.disabled = not reason.is_empty()
 	_ram_test_button.tooltip_text = reason if not reason.is_empty() else "Avaliar a RAM instalada, mesmo se ela impedir a inicialização do sistema."
 	_test_help.text = reason if not reason.is_empty() else "Pronto para testar a RAM. O teste revela sua condição e não realiza reparos."
-	if pc.has("test_job"): _test_help.text = Prefs.t("Verificando %s · %.1f s restantes") % [Prefs.t(model.PART_NAMES[pc.test_job.kind]), pc.test_job.remaining]
+	if pc.has("test_job"): _test_help.text = Prefs.t("Verificando %s · %.1f s restantes") % [Prefs.t(model.component_label(pc.test_job.kind)), pc.test_job.remaining]
 	content.get_node("Description").text = "Verificações básicas da bancada. Resultados ficam salvos em cada peça."
 	var result: Label = content.get_node("EmptyTests/Content/Description")
 	result.text = model.localized_boot_result(pc)
 	content.get_node("EmptyTests/Content/Title").text = "Resultado do equipamento"
 	var operation: Node = content.get_node("Metrics/Operation/Content")
-	operation.get_node("Value").text = "Em teste" if busy else "POST OK" if pc.power and pc.boot_ok else "Falhou" if pc.power else "Desligado"
+	var post_passed: bool = pc.boot_ok or pc.boot_result.begins_with("POST concluído")
+	operation.get_node("Value").text = "Instalação" if pc.has("installation") else "Em teste" if busy else "POST OK" if pc.power and post_passed else "Falhou" if pc.power else "Desligado"
 	operation.get_node("Value").add_theme_font_size_override("font_size", 22)
 	operation.get_node("Status").text = "Inicialização" if pc.power else "Clique em Iniciar POST"
-	var ram: Dictionary = model.item(pc.components.get("ram", ""))
-	if not ram.is_empty() and ram.tested:
-		result.text += "\nRAM A1: " + model.known_description(ram.id)
-	var second_ram: Dictionary = model.item(pc.components.get("ram2",""))
-	if second_ram.get("tested",false): result.text += "\nRAM A2: "+model.known_description(second_ram.id)
+	for slot in model.ram_slots(pc.id):
+		var ram: Dictionary = model.item(pc.components.get(Hardware.RAM_KEYS[slot], ""))
+		if ram.get("tested", false):
+			result.text += "\nRAM %s: %s" % [Hardware.RAM_LABELS[slot], model.known_description(ram.id)]
+	var profile: Dictionary = model.memory_profile(pc.id)
+	if pc.power and not profile.is_empty() and model.ram_configuration_reason(pc.id).is_empty():
+		result.text += "\n%s · %d GB · %d MT/s · %.1f GB/s\nDesempenho estimado: %d pontos" % [
+			Prefs.t(profile.mode), profile.total_gb, profile.speed_mt, profile.bandwidth_gbs, profile.performance]
 	var selected_kind: String = _component_picker.get_selected_metadata()
 	var tested_part: Dictionary = model.item(pc.components.get(selected_kind, ""))
-	if tested_part.get("tested", false): result.text += "\n" + tested_part.get("test_result", model.known_description(tested_part.id))
+	if tested_part.has("test_result") or tested_part.get("tested", false): result.text += "\n" + tested_part.get("test_result", model.known_description(tested_part.id))
+	if pc.power and not busy:
+		var device_status := {"recognized": "Reconhecido", "no_power": "Sem energia SATA", "no_data": "Sem dados SATA", "unfixed": "Solto na baia", "failed": "Não reconhecido"}
+		for slot in model.STORAGE_SLOTS:
+			if not pc.components.has(slot): continue
+			var disk: Dictionary = model.item(pc.components[slot])
+			result.text += "\nSATA %d · %s · %s" % [model.STORAGE_SLOTS.find(slot) + 1, model.storage_description(disk), Prefs.t(device_status[model.storage_status(pc.id, slot)])]
 	var gpu: Dictionary = model.item(pc.components.get("gpu", ""))
 	if selected_kind != "gpu" and gpu.has("test_result"): result.text += "\n" + gpu.test_result
-	content.get_node("Metrics/Temperature/Content/Status").text = "Teste térmico indisponível"
+	var cpu: Dictionary = model.item(pc.components.get("cpu", ""))
+	var cpu_spec := Hardware.cpu_spec(cpu)
+	if cpu.get("tested", false) and not cpu_spec.is_empty():
+		content.get_node("Metrics/Temperature/Content/Value").text = "%d °C" % cpu_spec.temp_c
+		content.get_node("Metrics/Temperature/Content/Status").text = "Temperatura simulada"
+	else:
+		content.get_node("Metrics/Temperature/Content/Value").text = "—"
+		content.get_node("Metrics/Temperature/Content/Status").text = "Sem leitura"
 	var diagnosis: Node = tabs.get_tab_control(1).get_node("Content")
 	diagnosis.get_node("EmptyFindings/Content/Title").text = "Verificação de inicialização (POST)"
 	diagnosis.get_node("EmptyFindings/Content/Description").text = model.localized_boot_result(pc)
 	diagnosis.get_node("DiagnosisNote/Text").text = "Teste disponível também na aba Testes. Nenhuma peça é corrigida automaticamente."
+
+
+func _update_secondary_drive_option(available: bool) -> void:
+	var last := _component_picker.item_count - 1
+	var listed: bool = _component_picker.get_item_metadata(last) == "storage2"
+	if available and not listed:
+		_component_picker.add_item(Prefs.t("Armazenamento · SATA 2"))
+		_component_picker.set_item_metadata(last + 1, "storage2")
+	elif not available and listed:
+		if _component_picker.selected == last: _component_picker.select(0)
+		_component_picker.remove_item(last)
 
 
 func _update_video(status: String, prerequisite: String) -> void:
@@ -369,9 +400,12 @@ func _update_component_results() -> void:
 		label.tooltip_text = "" if record.is_empty() else model.known_description(record.id)
 		if code == "RAM":
 			var lines: Array[String] = []
-			for key in ["ram","ram2"]:
-				var module: Dictionary = model.item(pc.components.get(key,""))
-				lines.append(("A1: " if key == "ram" else "A2: ")+(Prefs.t("Vazio") if module.is_empty() else "%d%% · %s" % [module.health, Prefs.t(model.condition_label(module.health))] if module.tested else Prefs.t("Presente · não testado")))
+			for slot in model.ram_slots(pc.id):
+				var module: Dictionary = model.item(pc.components.get(Hardware.RAM_KEYS[slot], ""))
+				var status := Prefs.t("Vazio") if module.is_empty() else Prefs.t("Presente · não testado")
+				if module.get("tested", false):
+					status = "%d%% · %s" % [module.health, Prefs.t(model.condition_label(module.health))]
+				lines.append("%s: %s" % [Hardware.RAM_LABELS[slot], status])
 			label.text = "\n".join(lines)
 			label.add_theme_font_size_override("font_size",12)
 

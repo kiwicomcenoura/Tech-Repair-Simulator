@@ -41,6 +41,7 @@ var _status: Label
 
 func _ready() -> void:
 	ledger.changed.connect(_on_changed)
+	ledger.mail_changed.connect(_on_mail_changed)
 	ledger.feedback.connect(_feedback)
 	ledger.new_game(false)
 	bench_ui.inspection.bind_workshop(self)
@@ -60,6 +61,8 @@ func _ready() -> void:
 		ledger.new_game(start_with_delivery)
 		Orders.ensure(ledger, not start_with_delivery)
 	Orders.ensure(ledger)
+	ledger.Mail.initialize(ledger.state)
+	ledger.Mail.sync_orders(ledger.state)
 	orders_ui = preload("res://Scripts/UI/service_orders_ui.gd").new()
 	orders_ui.workshop = self
 	add_child(orders_ui)
@@ -317,14 +320,19 @@ func _can_drop(point: Vector2) -> bool:
 
 func _on_changed() -> void:
 	_syncing = true
+	if ledger.Mail.sync_orders(ledger.state): ledger.mail_changed.emit()
 	_sync_nodes()
 	if selected_ram not in ledger.available_ram(): selected_ram = ""
-	if selected_part not in ledger.available_parts(): selected_part = ""
+	if selected_part not in ledger.available_parts("", true): selected_part = ""
 	for data in equipment_views.values():
 		var session: RefCounted = data.get_inspection_session()
 		if session != null: session.changed.emit()
 	_syncing = false
 	save_game(false)
+
+
+func _on_mail_changed() -> void:
+	if not _syncing: save_game(false)
 
 
 func _session_changed(_pc_id: String) -> void:
@@ -504,6 +512,9 @@ func load_game() -> bool:
 	selected_ram = ""
 	selected_part = ""
 	ledger.state = candidate
+	Orders.ensure(ledger)
+	ledger.Mail.initialize(ledger.state)
+	ledger.Mail.sync_orders(ledger.state)
 	ledger.update_cpu_models()
 	_store_legacy_ram()
 	_restore_legacy_reception()
@@ -511,6 +522,9 @@ func load_game() -> bool:
 	player.global_position = Vector2(candidate.player[0], candidate.player[1])
 	_sync_nodes()
 	bench_ui._refresh_equipment()
+	_syncing = true
+	ledger.mail_changed.emit()
+	_syncing = false
 	_feedback("Progresso restaurado sem gerar novas unidades.", false)
 	return true
 

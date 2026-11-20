@@ -152,8 +152,9 @@ func finish_guided_job(workshop: Node, order: Dictionary) -> void:
 	check("desembalada" in guide._hint.text, "Opening the box advances to pickup")
 	await key(KEY_E)
 	await stand(workshop, Vector2(130, -90))
-	check("bandeja" in guide._hint.text, "Carrying the replacement leads back to the tray")
-	await key(KEY_E)
+	check("lista de peças" in guide._hint.text, "Guide explains direct bench access while carrying the replacement")
+	check(model.move(replacement.id, "shelf"), "Store replacement in the cabinet for the direct bench route")
+	await frames()
 	await key(KEY_F)
 	if not press_button(bench, "Inspect"): return
 	await frames()
@@ -174,7 +175,7 @@ func finish_guided_job(workshop: Node, order: Dictionary) -> void:
 	check("selecione a RAM DDR4" in guide.bench_hint.text, "Empty slot advances to selecting the replacement")
 	var picker: OptionButton = view.find_child("RAMInventory", true, false)
 	var index: int = view._inventory_ids.find(replacement.id)
-	check(index > 0, "The delivered module is selectable through the regular tray picker")
+	check(index > 0 and "Armário" in picker.get_item_text(index), "The guided replacement is selectable and identified as cabinet stock")
 	if index < 1: return
 	picker.select(index)
 	picker.item_selected.emit(index)
